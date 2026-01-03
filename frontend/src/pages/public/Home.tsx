@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronUp, ArrowRight, Star, ChevronLeft, ChevronRight, Phone, Mail, MapPin, Facebook, Twitter } from 'lucide-react';
+import Navbar from '../../components/common/Navbar';
 
 // Image imports
-import logoImg from '../../assets/images/logo.png';
 import illushome from '../../assets/images/illushome.png';
 import heroBg from '../../assets/images/hero11.png';
 import hw1 from '../../assets/images/hw1.png';
@@ -63,43 +63,7 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-white font-sans text-gray-800">
 
       {/* ================= NAVBAR ================= */}
-      <nav className="fixed top-0 w-full bg-white shadow-sm z-50 py-4">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 flex justify-between items-center">
-          {/* Left: Logo + Become Technician */}
-          <div className="flex items-center gap-6">
-            <Link to="/" className="flex-shrink-0">
-              <img src={logoImg} alt="Kaam Chha Logo" className="h-12 w-auto" />
-            </Link>
-            <Link 
-              to="/auth/register-technician" 
-              className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-600 text-white text-sm px-5 py-2.5 rounded-full font-medium transition shadow-md hover:shadow-lg"
-            >
-              Become Technician
-            </Link>
-          </div>
-
-          {/* Center: Nav Links */}
-          <div className="hidden md:flex items-center space-x-10 text-sm font-medium">
-            <Link to="/" className="text-orange-500 hover:text-orange-600 transition font-semibold">Home</Link>
-            <Link to="/services" className="text-gray-700 hover:text-orange-500 transition">Services</Link>
-            <Link to="/how-it-works" className="text-gray-700 hover:text-orange-500 transition">How It Works</Link>
-            <Link to="/about" className="text-gray-700 hover:text-orange-500 transition">About Us</Link>
-          </div>
-
-          {/* Right: Auth Buttons */}
-          <div className="flex items-center space-x-4">
-            <Link to="/auth/login" className="text-gray-700 hover:text-orange-500 text-sm font-medium transition">
-              Sign In
-            </Link>
-            <Link 
-              to="/auth/register" 
-              className="bg-orange-500 hover:bg-orange-600 text-white text-sm px-6 py-2.5 rounded-full font-medium transition shadow-md shadow-orange-500/30 hover:shadow-lg"
-            >
-              Join Now
-            </Link>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* ================= HERO SECTION ================= */}
       <section className="pt-32 pb-16 px-6">
@@ -251,7 +215,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* ================= HOW IT WORKS ================= */}
-      <section className="py-24 bg-gradient-to-b from-gray-50 to-white px-6">
+      <section className="py-24 bg-white px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
             
@@ -424,7 +388,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* ================= FAQ SECTION ================= */}
-      <section className="py-24 bg-gradient-to-b from-gray-50 to-white px-6">
+      <section className="py-24 bg-white px-6">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-16">

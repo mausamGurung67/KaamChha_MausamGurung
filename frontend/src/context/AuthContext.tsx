@@ -55,6 +55,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authService.login(data);
       if (response.success && response.data) {
         setUser(response.data.user);
+        // Store token if provided in response
+        const tokenData = response.data as unknown as { accessToken?: string };
+        if (tokenData.accessToken) {
+          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.accessToken);
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -72,6 +77,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await authService.register(data);
       if (response.success && response.data) {
         setUser(response.data.user);
+        // Store token if provided in response
+        const tokenData = response.data as unknown as { accessToken?: string };
+        if (tokenData.accessToken) {
+          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.accessToken);
+        }
         // Store email for OTP verification page
         localStorage.setItem(STORAGE_KEYS.PENDING_EMAIL, data.email);
       }
@@ -93,6 +103,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setUser(null);
       localStorage.removeItem(STORAGE_KEYS.USER);
+      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.PENDING_EMAIL);
       setIsLoading(false);
     }

@@ -16,8 +16,8 @@ const Login: React.FC = () => {
     
     try {
       await login({ email: formData.email, password: formData.password });
-      // If login successful, check if email is verified
-      navigate('/'); // or dashboard
+      // Login successful - redirect to home
+      navigate('/');
     } catch {
       // Error is handled by AuthContext
     }

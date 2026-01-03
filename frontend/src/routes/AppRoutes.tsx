@@ -10,12 +10,16 @@ import OtpVerification from '../pages/auth/OtpVerificationForm';
 import RoleSelection from '../pages/auth/RoleSelectionForm';
 import NotFound from '../pages/public/NotFound';
 import Home from '../pages/public/Home';
+import Profile from '../pages/profile/Profile';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Home page as the landing page */}
       <Route path="/" element={<Home />} />
+
+      {/* Profile page */}
+      <Route path="/profile" element={<Profile />} />
 
       {/* Auth Routes wrapped in the Layout */}
       <Route path="/auth" element={<AuthLayout />}>
