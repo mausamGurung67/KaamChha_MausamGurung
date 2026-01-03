@@ -39,7 +39,7 @@ export const register = async (data: RegisterRequest): Promise<ApiResponse<AuthR
  */
 export const registerTechnician = async (data: FormData): Promise<ApiResponse<AuthResponse>> => {
   const response = await api.post<ApiResponse<AuthResponse>>(
-    API_ENDPOINTS.AUTH.REGISTER_TECHNICIAN,
+    API_ENDPOINTS.AUTH.REGISTER,
     data,
     {
       headers: {
@@ -103,20 +103,17 @@ export const resetPassword = async (data: ResetPasswordRequest): Promise<ApiResp
 };
 
 /**
- * Login with Google OAuth token
+ * Login with Google OAuth token (not implemented in backend yet)
  */
-export const googleLogin = async (data: GoogleLoginRequest): Promise<ApiResponse<AuthResponse>> => {
-  const response = await api.post<ApiResponse<AuthResponse>>(
-    API_ENDPOINTS.AUTH.GOOGLE_LOGIN,
-    data
-  );
-  return response.data;
+export const googleLogin = async (_data: GoogleLoginRequest): Promise<ApiResponse<AuthResponse>> => {
+  // TODO: Implement when backend supports Google OAuth
+  throw new Error('Google login not implemented yet');
 };
 
 /**
  * Refresh access token
  */
 export const refreshToken = async (): Promise<ApiResponse> => {
-  const response = await api.post<ApiResponse>(API_ENDPOINTS.AUTH.REFRESH_TOKEN);
+  const response = await api.post<ApiResponse>(API_ENDPOINTS.AUTH.REFRESH);
   return response.data;
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
 
 // Import the pages
@@ -9,12 +9,13 @@ import TechnicianRegister from '../pages/auth/TechnicianRegisterForm';
 import OtpVerification from '../pages/auth/OtpVerificationForm';
 import RoleSelection from '../pages/auth/RoleSelectionForm';
 import NotFound from '../pages/public/NotFound';
+import Home from '../pages/public/Home';
 
 const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Redirect default path "/" to login for now */}
-      <Route path="/" element={<Navigate to="/auth/login" replace />} />
+      {/* Home page as the landing page */}
+      <Route path="/" element={<Home />} />
 
       {/* Auth Routes wrapped in the Layout */}
       <Route path="/auth" element={<AuthLayout />}>

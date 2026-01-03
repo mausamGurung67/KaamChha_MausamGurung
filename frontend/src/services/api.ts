@@ -64,7 +64,7 @@ api.interceptors.response.use(
 
       try {
         // Try to refresh the token
-        await api.post(API_ENDPOINTS.AUTH.REFRESH_TOKEN);
+        await api.post(API_ENDPOINTS.AUTH.REFRESH);
         processQueue(null);
         return api(originalRequest);
       } catch (refreshError) {
