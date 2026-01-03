@@ -7,7 +7,7 @@ import '../../styles/auth.css';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, isLoading, error, clearError } = useAuth();
+  const { login, isLoading, error, clearError, user } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -16,12 +16,25 @@ const Login: React.FC = () => {
     
     try {
       await login({ email: formData.email, password: formData.password });
-      // Login successful - redirect to home
-      navigate('/');
+      // Login successful - redirect based on role
+      // Note: We need to get the user from context after login
+      // The navigation will happen after the component re-renders with updated user
     } catch {
       // Error is handled by AuthContext
     }
   };
+
+  // Effect to handle redirect after user is set
+  React.useEffect(() => {
+    if (!isLoading && user) {
+      // Redirect based on user role
+      if (user.role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
+    }
+  }, [user, isLoading, navigate]);
 
   return (
     <div className="auth-form-container">
