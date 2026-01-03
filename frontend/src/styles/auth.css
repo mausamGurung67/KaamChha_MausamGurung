@@ -1,0 +1,313 @@
+/* src/styles/auth.css */
+.auth-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* --- Left Side --- */
+.auth-left {
+  flex: 1; /* Takes up 50% space */
+  background-color: #fff; /* Or slightly off-white if desired */
+  display: flex;
+  flex-direction: column;
+  padding: 40px;
+  position: relative;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-container {
+  position: absolute;
+  top: 40px;
+  left: 40px;
+}
+
+.logo {
+  width: 120px; /* Adjust size based on preference */
+  height: auto;
+}
+
+.illustration-container {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+.illustration {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+/* --- Right Side --- */
+.auth-right {
+  flex: 1; /* Takes up the other 50% */
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center;    /* Center vertically */
+  padding: 40px;
+}
+
+.auth-content {
+  width: 100%;
+  max-width: 450px; /* Limits the form width so it doesn't stretch too wide */
+}
+
+/* Headings inside forms */
+.auth-title {
+  font-size: 28px;
+  color: var(--primary-color);
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.auth-subtitle {
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+  font-size: 14px;
+}
+
+/* Responsive: Stack vertically on mobile */
+@media (max-width: 768px) {
+  .auth-container {
+    flex-direction: column;
+  }
+  
+  .auth-left {
+    min-height: 300px;
+    padding: 20px;
+  }
+  
+  .logo-container {
+    top: 20px;
+    left: 20px;
+  }
+}
+
+/* Role Card Styles */
+.role-card {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 24px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start; /* Left align text as per design */
+  min-height: 200px;
+}
+
+.role-card:hover, .role-card.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.role-radio {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.role-card.active .role-radio {
+  border-color: var(--primary-color);
+}
+
+.role-radio-inner {
+  width: 10px;
+  height: 10px;
+  background-color: var(--primary-color);
+  border-radius: 50%;
+}
+
+.role-btn {
+  margin-top: 20px;
+  width: 100%;
+  font-size: 13px !important;
+  padding: 8px 16px !important;
+}
+
+.otp-input {
+  width: 45px;
+  height: 45px;
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-main);
+  outline: none;
+}
+.otp-input:focus {
+  background-color: #fff8f5; /* Very light orange bg on focus */
+}
+
+/* Step Indicator */
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e5e5e5;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.step.active .step-number {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.step-label {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.step.active .step-label {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.step-line {
+  width: 60px;
+  height: 2px;
+  background-color: #e5e5e5;
+  margin: 0 16px;
+  margin-bottom: 20px;
+}
+
+/* File Upload Styles */
+.file-upload-wrapper {
+  margin-bottom: 16px;
+}
+
+.file-upload-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.file-upload-box {
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: #fafafa;
+}
+
+.file-upload-box:hover {
+  border-color: var(--primary-color);
+  background-color: #fff8f5;
+}
+
+.file-upload-box.has-file {
+  border-color: var(--primary-color);
+  border-style: solid;
+  background-color: #fff;
+}
+
+.file-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #999;
+  font-size: 14px;
+}
+
+.file-upload-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-color);
+  font-size: 14px;
+}
+
+.file-upload-success span {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-uploads-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Custom Select */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.input-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.custom-select:focus {
+  border-color: var(--primary-color);
+}
+
+.custom-select:hover {
+  border-color: #bbb;
+}
+
+/* Responsive for file uploads */
+@media (max-width: 480px) {
+  .file-uploads-grid {
+    grid-template-columns: 1fr;
+  }
+}
