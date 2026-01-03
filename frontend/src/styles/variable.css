@@ -1,0 +1,24 @@
+/* src/styles/variables.css */
+:root {
+  /* Colors */
+  --primary-color: #DE6D2B;       /* Your specific orange */
+  --primary-hover: #c45b20;       /* Slightly darker for hover */
+  --text-main: #333333;           /* Dark grey for headings */
+  --text-secondary: #666666;      /* Lighter grey for subtitles */
+  --bg-white: #ffffff;
+  --border-color: #dddddd;
+  --input-bg: #ffffff;
+  
+  /* Spacing */
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px; /* For buttons and inputs */
+  
+  /* Font Family - We'll use Poppins as it matches your design's clean look */
+  --font-family: 'Satoshi', sans-serif;
+}
