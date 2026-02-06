@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, User, LogOut } from 'lucide-react';
+import { ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/images/logo.png';
 
@@ -47,12 +47,14 @@ const Navbar: React.FC = () => {
           <Link to="/" className="shrink-0">
             <img src={logoImg} alt="Kaam Chha Logo" className="h-12 w-auto" />
           </Link>
-          <Link 
-            to="/auth/register-technician" 
-            className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-600 text-white text-sm px-5 py-2.5 rounded-full font-medium transition shadow-md hover:shadow-lg"
-          >
-            Become Technician
-          </Link>
+          {!user && (
+            <Link 
+              to="/auth/register-technician" 
+              className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-600 text-white text-sm px-5 py-2.5 rounded-full font-medium transition shadow-md hover:shadow-lg"
+            >
+              Become Technician
+            </Link>
+          )}
         </div>
 
         {/* Center: Nav Links */}
@@ -116,6 +118,27 @@ const Navbar: React.FC = () => {
                   </div>
 
                   {/* Menu Items */}
+                  {/* Dashboard link based on role */}
+                  {user.role === 'ADMIN' && (
+                    <Link
+                      to="/admin/dashboard"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                    >
+                      <LayoutDashboard size={16} />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+                  {user.role === 'TECHNICIAN' && (
+                    <Link
+                      to="/technician/dashboard"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                    >
+                      <LayoutDashboard size={16} />
+                      <span>My Dashboard</span>
+                    </Link>
+                  )}
                   <Link
                     to="/profile"
                     onClick={() => setIsDropdownOpen(false)}

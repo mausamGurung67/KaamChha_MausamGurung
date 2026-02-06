@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
-import { useAuth } from '../../hooks/useAuth';
 import api from '../../services/api';
 import { API_ENDPOINTS, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from '../../utils/constants';
 import '../../styles/auth.css';
@@ -24,7 +23,6 @@ const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
 
 const TechnicianKycUpload: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const [documentType, setDocumentType] = useState<DocumentType>('CITIZENSHIP');
   const [documentNumber, setDocumentNumber] = useState('');
@@ -74,9 +72,7 @@ const TechnicianKycUpload: React.FC = () => {
       const formData = new FormData();
       formData.append('image', file);
 
-      const response = await api.post(API_ENDPOINTS.UPLOAD.IMAGE, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const response = await api.post(API_ENDPOINTS.UPLOAD.IMAGE, formData);
 
       const url = response.data.data.url as string;
       setter((prev) => ({ ...prev, url, uploading: false }));
@@ -134,7 +130,7 @@ const TechnicianKycUpload: React.FC = () => {
       });
 
       setSuccess(true);
-      setTimeout(() => navigate('/'), 3000);
+      setTimeout(() => navigate('/technician/dashboard'), 3000);
     } catch (err: any) {
       const message =
         err?.response?.data?.message || 'Failed to submit KYC. Please try again.';
@@ -211,7 +207,7 @@ const TechnicianKycUpload: React.FC = () => {
             Your documents are under review. We'll notify you once verified.
           </p>
           <p style={{ color: '#999', marginTop: '16px', fontSize: '14px' }}>
-            Redirecting to home page...
+            Redirecting to your dashboard...
           </p>
         </div>
       </div>

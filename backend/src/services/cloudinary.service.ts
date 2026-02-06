@@ -11,10 +11,15 @@ export const deleteImage = async (publicId: string): Promise<void> => {
   await cloudinary.uploader.destroy(publicId);
 };
 
+export interface CloudinaryUploadResult {
+  url: string;
+  publicId: string;
+}
+
 export const uploadFromBuffer = async (
   buffer: Buffer,
   folder?: string
-): Promise<string> => {
+): Promise<CloudinaryUploadResult> => {
   return new Promise((resolve, reject) => {
     cloudinary.uploader
       .upload_stream(
@@ -23,7 +28,7 @@ export const uploadFromBuffer = async (
         },
         (error: UploadApiErrorResponse | undefined, result: UploadApiResponse | undefined) => {
           if (error) reject(error);
-          else resolve(result!.secure_url);
+          else resolve({ url: result!.secure_url, publicId: result!.public_id });
         }
       )
       .end(buffer);

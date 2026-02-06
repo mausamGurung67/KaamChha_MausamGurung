@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { uploadSingle } from '../middleware/upload.middleware';
+import { uploadFromBuffer } from '../services/cloudinary.service';
 import { Request, Response } from 'express';
 
 const router = Router();
@@ -18,14 +19,24 @@ router.post(
       return;
     }
 
-    res.json({
-      success: true,
-      message: 'Image uploaded successfully',
-      data: {
-        url: (req.file as any).secure_url,
-        publicId: (req.file as any).public_id,
-      },
-    });
+    try {
+      const result = await uploadFromBuffer(req.file.buffer, 'kyc');
+
+      res.json({
+        success: true,
+        message: 'Image uploaded successfully',
+        data: {
+          url: result.url,
+          publicId: result.publicId,
+        },
+      });
+    } catch (error: any) {
+      console.error('Cloudinary upload error:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Failed to upload image to cloud storage',
+      });
+    }
   }
 );
 

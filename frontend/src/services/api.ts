@@ -33,8 +33,11 @@ const processQueue = (error: Error | null) => {
 // Request interceptor - add any request modifications here
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Cookies are sent automatically with withCredentials: true
-    // Add any custom headers if needed
+    // When sending FormData, remove the default Content-Type
+    // so axios/browser auto-sets it with the correct multipart boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
     return config;
   },
   (error: unknown) => {

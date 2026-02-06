@@ -1,7 +1,10 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
+import DashboardLayout from '../layouts/DashboardLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
+import { LayoutDashboard, ClipboardList, User } from 'lucide-react';
+import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
 import Login from '../pages/auth/LoginForm';
@@ -15,6 +18,26 @@ import Home from '../pages/public/Home';
 import Profile from '../pages/profile/Profile';
 import Unauthorized from '../pages/public/Unauthorized';
 import AdminDashboard from '../pages/admin/AdminDashboard';
+import TechnicianDashboard from '../pages/technician/TechnicianDashboard';
+
+// Technician sidebar nav items
+const technicianNavItems: NavItem[] = [
+  {
+    label: 'Dashboard',
+    path: '/technician/dashboard',
+    icon: <LayoutDashboard size={20} />,
+  },
+  {
+    label: 'Service Requests',
+    path: '/technician/requests',
+    icon: <ClipboardList size={20} />,
+  },
+  {
+    label: 'Profile',
+    path: '/technician/profile',
+    icon: <User size={20} />,
+  },
+];
 
 const AppRoutes: React.FC = () => {
   return (
@@ -41,6 +64,19 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         } 
       />
+
+      {/* Technician Routes - wrapped in DashboardLayout */}
+      <Route
+        path="/technician"
+        element={
+          <ProtectedRoute allowedRoles={['TECHNICIAN']}>
+            <DashboardLayout navItems={technicianNavItems} title="Technician Dashboard" />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<TechnicianDashboard />} />
+        <Route path="profile" element={<Profile />} />
+      </Route>
 
       {/* Unauthorized page */}
       <Route path="/unauthorized" element={<Unauthorized />} />
