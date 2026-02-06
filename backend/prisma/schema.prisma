@@ -43,11 +43,6 @@ enum OTPType {
   LOGIN
 }
 
-enum AvailabilityStatus {
-  AVAILABLE
-  UNAVAILABLE
-}
-
 enum KYCStatus {
   PENDING
   APPROVED
@@ -89,7 +84,6 @@ model User {
   verifiedKYCs      KYC[]     @relation("KYCVerifier")
   customerReviews   Review[]  @relation("CustomerReviews")
   technicianReviews Review[]  @relation("TechnicianReviews")
-  availability      Availability?
 
   @@index([email])
   @@index([role])
@@ -113,19 +107,6 @@ model Profile {
 
   @@index([userId])
   @@index([latitude, longitude])
-}
-
-model Availability {
-  id           String              @id @default(cuid())
-  technicianId String              @unique
-  status       AvailabilityStatus  @default(UNAVAILABLE)
-  reason       String?
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-
-  technician   User                @relation(fields: [technicianId], references: [id], onDelete: Cascade)
-
-  @@index([status])
 }
 
 model Category {

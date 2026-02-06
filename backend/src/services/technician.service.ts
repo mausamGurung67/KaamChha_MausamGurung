@@ -1,5 +1,5 @@
 import prisma from '../config/database';
-import { OrderStatus, PaymentStatus, AvailabilityStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 
 export const getTechnicianDashboard = async (technicianId: string): Promise<any> => {
   const [
@@ -10,7 +10,6 @@ export const getTechnicianDashboard = async (technicianId: string): Promise<any>
     totalEarnings,
     recentOrders,
     kycStatus,
-    availability,
   ] = await Promise.all([
     prisma.order.count({
       where: { technicianId },
@@ -82,9 +81,6 @@ export const getTechnicianDashboard = async (technicianId: string): Promise<any>
         status: true,
       },
     }),
-    prisma.availability.findUnique({
-      where: { technicianId },
-    }),
   ]);
 
   return {
@@ -95,7 +91,6 @@ export const getTechnicianDashboard = async (technicianId: string): Promise<any>
       completedOrders,
       totalEarnings: Number(totalEarnings._sum.technicianAmount || 0),
       kycStatus: kycStatus?.status || 'NOT_SUBMITTED',
-      availabilityStatus: availability?.status || AvailabilityStatus.UNAVAILABLE,
     },
     recentOrders,
   };
@@ -122,36 +117,6 @@ export const getTechnicianProfile = async (technicianId: string): Promise<any> =
 
   const { password, ...userWithoutPassword } = user;
   return userWithoutPassword;
-};
-
-export const getAvailability = async (technicianId: string) => {
-  const availability = await prisma.availability.findUnique({ where: { technicianId } });
-  if (availability) return availability;
-
-  return prisma.availability.create({
-    data: {
-      technicianId,
-    },
-  });
-};
-
-export const updateAvailability = async (
-  technicianId: string,
-  status: AvailabilityStatus,
-  reason?: string
-) => {
-  return prisma.availability.upsert({
-    where: { technicianId },
-    update: {
-      status,
-      reason: status === AvailabilityStatus.UNAVAILABLE ? reason ?? null : null,
-    },
-    create: {
-      technicianId,
-      status,
-      reason: status === AvailabilityStatus.UNAVAILABLE ? reason ?? null : null,
-    },
-  });
 };
 
 export const updateTechnicianProfile = async (

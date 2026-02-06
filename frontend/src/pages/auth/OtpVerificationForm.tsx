@@ -23,7 +23,8 @@ const OtpVerification: React.FC = () => {
   // Redirect if already verified
   useEffect(() => {
     if (user?.isEmailVerified) {
-      navigate('/');
+      const target = user.role === 'TECHNICIAN' ? '/auth/technician-kyc' : '/';
+      navigate(target, { replace: true });
     }
   }, [user, navigate]);
 
@@ -75,7 +76,10 @@ const OtpVerification: React.FC = () => {
     try {
       await verifyEmail(otpCode);
       setSuccessMessage('Email verified successfully! Redirecting...');
-      setTimeout(() => navigate('/'), 1500);
+      setTimeout(() => {
+        const target = user?.role === 'TECHNICIAN' ? '/auth/technician-kyc' : '/';
+        navigate(target, { replace: true });
+      }, 1200);
     } catch {
       // Error is handled by AuthContext
     }

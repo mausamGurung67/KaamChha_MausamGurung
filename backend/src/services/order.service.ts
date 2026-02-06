@@ -435,7 +435,7 @@ export const assignTechnician = async (
   // Verify technician exists and is active
   const technician = await prisma.user.findUnique({
     where: { id: technicianId },
-    include: { kyc: true, availability: true },
+    include: { kyc: true },
   });
 
   if (!technician || technician.role !== UserRole.TECHNICIAN) {
@@ -448,10 +448,6 @@ export const assignTechnician = async (
 
   if (!technician.kyc || technician.kyc.status !== 'APPROVED') {
     throw new Error('Technician KYC is not approved');
-  }
-
-  if (technician.availability?.status !== 'AVAILABLE') {
-    throw new Error('Technician is not available');
   }
 
   const updatedOrder = await prisma.order.update({

@@ -7,6 +7,8 @@ export type OTPType = 'EMAIL_VERIFICATION' | 'PASSWORD_RESET' | 'LOGIN';
 // Document types for KYC
 export type DocumentType = 'CITIZENSHIP' | 'LICENSE' | 'PASSPORT';
 
+export type KYCStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
 // User object returned from API
 export interface User {
   id: string;
@@ -80,7 +82,7 @@ export interface AuthState {
 export interface AuthContextType extends AuthState {
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
-  registerTechnician: (data: FormData) => Promise<void>;
+  registerTechnician: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   verifyEmail: (code: string) => Promise<void>;
   resendOTP: (type: OTPType) => Promise<void>;

@@ -7,8 +7,7 @@ export const registerSchema = z.object({
     password: z.string().min(8, 'Password must be at least 8 characters'),
     name: z.string().min(2, 'Name must be at least 2 characters'),
     phone: z.string().optional(),
-    // Allow self-signup only for customer or technician
-    role: z.enum([UserRole.CUSTOMER, UserRole.TECHNICIAN]).optional(),
+    role: z.nativeEnum(UserRole).optional(),
   }),
 });
 

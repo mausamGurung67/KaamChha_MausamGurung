@@ -30,12 +30,6 @@ export const register = async (data: RegisterData): Promise<{ user: User; access
     throw new Error('User with this email already exists');
   }
 
-  // Only allow self-serve registration for customer/technician
-  const role = data.role || UserRole.CUSTOMER;
-  if (![UserRole.CUSTOMER, UserRole.TECHNICIAN].includes(role)) {
-    throw new Error('Invalid role for registration');
-  }
-
   // Hash password
   const hashedPassword = await hashPassword(data.password);
 
@@ -44,7 +38,7 @@ export const register = async (data: RegisterData): Promise<{ user: User; access
     data: {
       email: data.email,
       password: hashedPassword,
-      role,
+      role: data.role || UserRole.CUSTOMER,
       profile: {
         create: {
           name: data.name,
@@ -53,15 +47,6 @@ export const register = async (data: RegisterData): Promise<{ user: User; access
       },
     },
   });
-
-  // Initialize availability for technicians
-  if (role === UserRole.TECHNICIAN) {
-    await prisma.availability.create({
-      data: {
-        technicianId: user.id,
-      },
-    });
-  }
 
   // Generate OTP for email verification
   const otpCode = await createOTP(user.id, OTPType.EMAIL_VERIFICATION);

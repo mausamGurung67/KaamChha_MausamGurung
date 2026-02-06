@@ -37,15 +37,10 @@ export const register = async (data: RegisterRequest): Promise<ApiResponse<AuthR
 /**
  * Register a technician with KYC documents (multipart form data)
  */
-export const registerTechnician = async (data: FormData): Promise<ApiResponse<AuthResponse>> => {
+export const registerTechnician = async (data: RegisterRequest): Promise<ApiResponse<AuthResponse>> => {
   const response = await api.post<ApiResponse<AuthResponse>>(
     API_ENDPOINTS.AUTH.REGISTER,
-    data,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }
+    data
   );
   return response.data;
 };

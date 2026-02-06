@@ -186,7 +186,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const registerTechnician = useCallback(async (data: FormData) => {
+  const registerTechnician = useCallback(async (data: RegisterRequest) => {
     setIsLoading(true);
     setError(null);
     try {
@@ -194,10 +194,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.data) {
         setUser(response.data.user);
         // Store email for OTP verification page
-        const email = data.get('email') as string;
-        if (email) {
-          localStorage.setItem(STORAGE_KEYS.PENDING_EMAIL, email);
-        }
+        const email = data.email;
+        localStorage.setItem(STORAGE_KEYS.PENDING_EMAIL, email);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';

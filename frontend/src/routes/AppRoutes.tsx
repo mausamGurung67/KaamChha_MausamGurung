@@ -7,6 +7,7 @@ import ProtectedRoute from '../components/common/ProtectedRoute';
 import Login from '../pages/auth/LoginForm';
 import Register from '../pages/auth/RegisterForm';
 import TechnicianRegister from '../pages/auth/TechnicianRegisterForm';
+import TechnicianKycUpload from '../pages/auth/TechnicianKycUpload';
 import OtpVerification from '../pages/auth/OtpVerificationForm';
 import RoleSelection from '../pages/auth/RoleSelectionForm';
 import NotFound from '../pages/public/NotFound';
@@ -50,6 +51,14 @@ const AppRoutes: React.FC = () => {
         <Route path="register" element={<Register />} />
         <Route path="register-technician" element={<TechnicianRegister />} />
         <Route path="otp-verify" element={<OtpVerification />} />
+        <Route
+          path="technician-kyc"
+          element={
+            <ProtectedRoute allowedRoles={['TECHNICIAN']} redirectTo="/auth/login">
+              <TechnicianKycUpload />
+            </ProtectedRoute>
+          }
+        />
         <Route path="role-selection" element={<RoleSelection />} />
       </Route>
 
