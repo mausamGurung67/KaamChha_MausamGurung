@@ -12,9 +12,9 @@ import logoImg from '../assets/images/logo.png';
 
 export interface NavItem {
   label: string;
-  path: string;
+  path?: string;
   icon: React.ReactNode;
-  children?: { label: string; path: string }[];
+  children?: { label: string; path: string; icon?: React.ReactNode }[];
 }
 
 interface DashboardLayoutProps {
@@ -44,7 +44,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ navItems, title }) =>
     );
   };
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path?: string) => path ? location.pathname === path : false;
   const isParentActive = (item: NavItem) =>
     item.children?.some((child) => location.pathname === child.path) ?? false;
 
@@ -82,12 +82,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ navItems, title }) =>
                   key={child.path}
                   to={child.path}
                   onClick={() => setSidebarOpen(false)}
-                  className={`block px-4 py-2 rounded-lg text-sm transition-colors ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-colors ${
                     isActive(child.path)
                       ? 'bg-orange-50 text-orange-600 font-medium'
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
+                  {child.icon && <span className="flex-shrink-0">{child.icon}</span>}
                   {child.label}
                 </Link>
               ))}
@@ -99,8 +100,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ navItems, title }) =>
 
     return (
       <Link
-        key={item.path}
-        to={item.path}
+        key={item.path || item.label}
+        to={item.path || '#'}
         onClick={() => setSidebarOpen(false)}
         className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
           active

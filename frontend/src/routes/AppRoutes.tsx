@@ -2,8 +2,9 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
+import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
-import { LayoutDashboard, ClipboardList, User } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -17,24 +18,39 @@ import NotFound from '../pages/public/NotFound';
 import Home from '../pages/public/Home';
 import Profile from '../pages/profile/Profile';
 import Unauthorized from '../pages/public/Unauthorized';
-import AdminDashboard from '../pages/admin/AdminDashboard';
 import TechnicianDashboard from '../pages/technician/TechnicianDashboard';
 
-// Technician sidebar nav items
-const technicianNavItems: NavItem[] = [
+// Admin pages
+import AdminDashboardHome from '../pages/admin/AdminDashboardHome';
+import VerifyKYC from '../pages/admin/VerifyKYC';
+import ManageTechnicians from '../pages/admin/ManageTechnicians';
+
+// Admin sidebar nav items
+const adminNavItems: NavItem[] = [
   {
     label: 'Dashboard',
-    path: '/technician/dashboard',
+    path: '/admin/dashboard',
     icon: <LayoutDashboard size={20} />,
   },
   {
-    label: 'Service Requests',
-    path: '/technician/requests',
-    icon: <ClipboardList size={20} />,
+    label: 'Manage Technicians',
+    icon: <Users size={20} />,
+    children: [
+      {
+        label: 'Verify KYC',
+        path: '/admin/technicians/verify-kyc',
+        icon: <ShieldCheck size={18} />,
+      },
+      {
+        label: 'All Technicians',
+        path: '/admin/technicians/manage',
+        icon: <UserCog size={18} />,
+      },
+    ],
   },
   {
     label: 'Profile',
-    path: '/technician/profile',
+    path: '/admin/profile',
     icon: <User size={20} />,
   },
 ];
@@ -55,22 +71,27 @@ const AppRoutes: React.FC = () => {
         } 
       />
 
-      {/* Admin Routes - only accessible to ADMIN role */}
-      <Route 
-        path="/admin/dashboard" 
+      {/* Admin Routes - wrapped in DashboardLayout */}
+      <Route
+        path="/admin"
         element={
           <ProtectedRoute allowedRoles={['ADMIN']}>
-            <AdminDashboard />
+            <DashboardLayout navItems={adminNavItems} title="Admin Dashboard" />
           </ProtectedRoute>
-        } 
-      />
+        }
+      >
+        <Route path="dashboard" element={<AdminDashboardHome />} />
+        <Route path="technicians/verify-kyc" element={<VerifyKYC />} />
+        <Route path="technicians/manage" element={<ManageTechnicians />} />
+        <Route path="profile" element={<Profile />} />
+      </Route>
 
-      {/* Technician Routes - wrapped in DashboardLayout */}
+      {/* Technician Routes - wrapped in TechnicianLayout (KYC-gated sidebar) */}
       <Route
         path="/technician"
         element={
           <ProtectedRoute allowedRoles={['TECHNICIAN']}>
-            <DashboardLayout navItems={technicianNavItems} title="Technician Dashboard" />
+            <TechnicianLayout />
           </ProtectedRoute>
         }
       >
