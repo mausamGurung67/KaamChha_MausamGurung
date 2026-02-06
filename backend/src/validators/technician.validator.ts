@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AvailabilityStatus } from '@prisma/client';
 
 export const updateProfileSchema = z.object({
   body: z.object({
@@ -15,4 +16,17 @@ export const getEarningsSchema = z.object({
     endDate: z.string().datetime().optional(),
   }),
 });
+
+export const updateAvailabilitySchema = z.object({
+  body: z.object({
+    status: z.nativeEnum(AvailabilityStatus),
+    reason: z.string().optional(),
+  }),
+}).refine(
+  (data) => data.body.status === AvailabilityStatus.AVAILABLE || !!data.body.reason,
+  {
+    message: 'Reason is required when setting unavailable',
+    path: ['body', 'reason'],
+  }
+);
 

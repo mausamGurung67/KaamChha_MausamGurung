@@ -1,5 +1,6 @@
 import prisma from '../config/database';
 import { calculateDistance, isWithinRadius } from '../utils/distance.util';
+import { AvailabilityStatus } from '@prisma/client';
 
 export interface LocationData {
   latitude: number;
@@ -56,10 +57,14 @@ export const findNearbyTechnicians = async (
         latitude: { not: null },
         longitude: { not: null },
       },
+      availability: {
+        status: AvailabilityStatus.AVAILABLE,
+      },
     },
     include: {
       profile: true,
       kyc: true,
+      availability: true,
     },
   });
 

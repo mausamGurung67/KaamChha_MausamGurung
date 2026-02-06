@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/auth.middleware';
 import { uploadSingle } from '../middleware/upload.middleware';
 import { Request, Response } from 'express';
+import { uploadFromBuffer } from '../services/cloudinary.service';
 
 const router = Router();
 
@@ -17,13 +18,14 @@ router.post(
       });
       return;
     }
+    const { secureUrl, publicId } = await uploadFromBuffer(req.file.buffer, 'uploads');
 
     res.json({
       success: true,
       message: 'Image uploaded successfully',
       data: {
-        url: (req.file as any).secure_url,
-        publicId: (req.file as any).public_id,
+        url: secureUrl,
+        publicId,
       },
     });
   }

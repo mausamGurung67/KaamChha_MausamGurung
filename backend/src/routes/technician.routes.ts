@@ -6,6 +6,7 @@ import { UserRole } from '@prisma/client';
 import {
   updateProfileSchema,
   getEarningsSchema,
+  updateAvailabilitySchema,
 } from '../validators/technician.validator';
 
 const router = Router();
@@ -18,6 +19,8 @@ router.get('/dashboard', technicianController.getDashboard);
 router.get('/profile', technicianController.getProfile);
 router.patch('/profile', validate(updateProfileSchema), technicianController.updateProfile);
 router.get('/earnings', validate(getEarningsSchema), technicianController.getEarnings);
+router.get('/availability', technicianController.getAvailability);
+router.patch('/availability', validate(updateAvailabilitySchema), technicianController.updateAvailability);
 
 export default router;
 

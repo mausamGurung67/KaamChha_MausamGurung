@@ -32,6 +32,10 @@ export const submitKYC = async (data: SubmitKYCData): Promise<KYC> => {
     throw new Error('Only technicians can submit KYC');
   }
 
+  if (!user.isEmailVerified) {
+    throw new Error('Email verification required before submitting KYC');
+  }
+
   // Check if KYC already exists
   const existingKYC = await prisma.kYC.findUnique({
     where: { technicianId: data.technicianId },

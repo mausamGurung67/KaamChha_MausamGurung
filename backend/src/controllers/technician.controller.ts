@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as technicianService from '../services/technician.service';
+import { AvailabilityStatus } from '@prisma/client';
 
 export const getDashboard = async (req: Request, res: Response): Promise<void> => {
   const dashboard = await technicianService.getTechnicianDashboard(req.userId!);
@@ -50,6 +51,29 @@ export const getEarnings = async (req: Request, res: Response): Promise<void> =>
   res.json({
     success: true,
     data: earnings,
+  });
+};
+
+export const getAvailability = async (req: Request, res: Response): Promise<void> => {
+  const availability = await technicianService.getAvailability(req.userId!);
+
+  res.json({
+    success: true,
+    data: availability,
+  });
+};
+
+export const updateAvailability = async (req: Request, res: Response): Promise<void> => {
+  const availability = await technicianService.updateAvailability(
+    req.userId!,
+    req.body.status as AvailabilityStatus,
+    req.body.reason
+  );
+
+  res.json({
+    success: true,
+    message: 'Availability updated',
+    data: availability,
   });
 };
 

@@ -246,6 +246,7 @@ export const listTechnicians = async (filters: TechnicianListFilters = {}): Prom
       include: {
         profile: true,
         kyc: true,
+        availability: true,
         _count: {
           select: {
             technicianOrders: true,
