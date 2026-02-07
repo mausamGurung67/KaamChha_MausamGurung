@@ -2,6 +2,14 @@ import api from './api';
 import { API_ENDPOINTS } from '../utils/constants';
 import type { ApiResponse } from '../types/auth.types';
 
+// ── Upload helper ─────────────────────────────────────
+export const uploadBookingImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await api.post(`${API_ENDPOINTS.UPLOAD.IMAGE}?folder=bookings`, formData);
+  return res.data.data.url;
+};
+
 // ── Types ─────────────────────────────────────────────
 export type BookingStatus =
   | 'PENDING'

@@ -21,6 +21,7 @@ import {
   rejectBooking,
   updateBookingStatus,
   completeByTechnician,
+  uploadBookingImage,
   type Booking,
   type BookingStatus,
 } from '../../services/booking.service';
@@ -50,6 +51,11 @@ const TechnicianBookings: React.FC = () => {
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [showCompleteModal, setShowCompleteModal] = useState<string | null>(null);
   const [completeNotes, setCompleteNotes] = useState('');
+  const [beforePhotos, setBeforePhotos] = useState<File[]>([]);
+  const [afterPhotos, setAfterPhotos] = useState<File[]>([]);
+  const [beforePreviews, setBeforePreviews] = useState<string[]>([]);
+  const [afterPreviews, setAfterPreviews] = useState<string[]>([]);
+  const [uploadProgress, setUploadProgress] = useState('');
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -124,14 +130,28 @@ const TechnicianBookings: React.FC = () => {
   const handleComplete = async (id: string) => {
     setActionLoading(id);
     try {
+      // Upload photos first
+      setUploadProgress('Uploading before photos...');
+      const beforeUrls = await Promise.all(beforePhotos.map((f) => uploadBookingImage(f)));
+      setUploadProgress('Uploading after photos...');
+      const afterUrls = await Promise.all(afterPhotos.map((f) => uploadBookingImage(f)));
+      setUploadProgress('');
+
       await completeByTechnician(id, {
         notes: completeNotes || undefined,
+        beforePhotos: beforeUrls.length > 0 ? beforeUrls : undefined,
+        afterPhotos: afterUrls.length > 0 ? afterUrls : undefined,
       });
       setShowCompleteModal(null);
       setCompleteNotes('');
+      setBeforePhotos([]);
+      setAfterPhotos([]);
+      setBeforePreviews([]);
+      setAfterPreviews([]);
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
+      setUploadProgress('');
       alert(err?.response?.data?.message || 'Failed to mark as completed');
     } finally {
       setActionLoading('');
@@ -415,10 +435,11 @@ const TechnicianBookings: React.FC = () => {
       {/* Complete Modal */}
       {showCompleteModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setShowCompleteModal(null)}>
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 p-6 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-gray-900 mb-2">Mark as Completed</h3>
-            <p className="text-sm text-gray-500 mb-4">Add notes about the completed work. The customer will need to confirm.</p>
-            <div className="space-y-3">
+            <p className="text-sm text-gray-500 mb-4">Add notes and upload before/after photos of the work. The customer will need to confirm.</p>
+            <div className="space-y-4">
+              {/* Notes */}
               <div>
                 <label className="text-sm font-medium text-gray-700 mb-1 block">
                   <FileText size={14} className="inline mr-1" />
@@ -432,10 +453,116 @@ const TechnicianBookings: React.FC = () => {
                   rows={3}
                 />
               </div>
+
+              {/* Before Photos */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                  <Camera size={14} className="inline mr-1" />
+                  Before Photos
+                </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {beforePreviews.map((src, i) => (
+                    <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                      <img src={src} alt={`Before ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setBeforePhotos((p) => p.filter((_, idx) => idx !== i));
+                          setBeforePreviews((p) => p.filter((_, idx) => idx !== i));
+                        }}
+                        className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                  {beforePhotos.length < 5 && (
+                    <label className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition text-gray-400 hover:text-orange-500">
+                      <Camera size={18} />
+                      <span className="text-[10px] mt-0.5">Add</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setBeforePhotos((p) => [...p, file]);
+                            setBeforePreviews((p) => [...p, URL.createObjectURL(file)]);
+                          }
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400">Upload up to 5 photos of the work area before starting</p>
+              </div>
+
+              {/* After Photos */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                  <Camera size={14} className="inline mr-1" />
+                  After Photos
+                </label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {afterPreviews.map((src, i) => (
+                    <div key={i} className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200">
+                      <img src={src} alt={`After ${i + 1}`} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAfterPhotos((p) => p.filter((_, idx) => idx !== i));
+                          setAfterPreviews((p) => p.filter((_, idx) => idx !== i));
+                        }}
+                        className="absolute top-0.5 right-0.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                  {afterPhotos.length < 5 && (
+                    <label className="w-20 h-20 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 transition text-gray-400 hover:text-orange-500">
+                      <Camera size={18} />
+                      <span className="text-[10px] mt-0.5">Add</span>
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setAfterPhotos((p) => [...p, file]);
+                            setAfterPreviews((p) => [...p, URL.createObjectURL(file)]);
+                          }
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400">Upload up to 5 photos showing the completed work</p>
+              </div>
             </div>
+
+            {/* Upload progress */}
+            {uploadProgress && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-orange-600">
+                <Loader2 size={14} className="animate-spin" />
+                {uploadProgress}
+              </div>
+            )}
             <div className="flex gap-2 mt-4">
               <button
-                onClick={() => setShowCompleteModal(null)}
+                onClick={() => {
+                  setShowCompleteModal(null);
+                  setCompleteNotes('');
+                  setBeforePhotos([]);
+                  setAfterPhotos([]);
+                  setBeforePreviews([]);
+                  setAfterPreviews([]);
+                  setUploadProgress('');
+                }}
                 className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
               >
                 Cancel

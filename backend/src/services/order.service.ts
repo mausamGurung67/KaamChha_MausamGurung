@@ -221,13 +221,12 @@ export const listOrders = async (
     where.customerId = userId;
   } else if (userRole === UserRole.TECHNICIAN) {
     // Show orders assigned to this technician OR
-    // pending unassigned orders for services this technician created
+    // ALL pending unassigned orders (first come first serve)
     where.OR = [
       { technicianId: userId },
       {
         technicianId: null,
         status: OrderStatus.PENDING,
-        service: { createdBy: userId },
       },
     ];
   }
