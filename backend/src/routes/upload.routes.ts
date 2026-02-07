@@ -20,7 +20,9 @@ router.post(
     }
 
     try {
-      const result = await uploadFromBuffer(req.file.buffer, 'kyc');
+      // Support a folder query param, default to 'general'
+      const folder = (req.query.folder as string) || 'general';
+      const result = await uploadFromBuffer(req.file.buffer, folder);
 
       res.json({
         success: true,

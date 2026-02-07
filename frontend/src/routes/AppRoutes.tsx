@@ -4,7 +4,7 @@ import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
-import { LayoutDashboard, Users, ShieldCheck, UserCog, User } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -16,6 +16,8 @@ import OtpVerification from '../pages/auth/OtpVerificationForm';
 import RoleSelection from '../pages/auth/RoleSelectionForm';
 import NotFound from '../pages/public/NotFound';
 import Home from '../pages/public/Home';
+import Services from '../pages/public/Services';
+import ServiceDetails from '../pages/public/ServiceDetails';
 import Profile from '../pages/profile/Profile';
 import Unauthorized from '../pages/public/Unauthorized';
 import TechnicianDashboard from '../pages/technician/TechnicianDashboard';
@@ -24,6 +26,7 @@ import TechnicianDashboard from '../pages/technician/TechnicianDashboard';
 import AdminDashboardHome from '../pages/admin/AdminDashboardHome';
 import VerifyKYC from '../pages/admin/VerifyKYC';
 import ManageTechnicians from '../pages/admin/ManageTechnicians';
+import ManageServices from '../pages/admin/ManageServices';
 
 // Admin sidebar nav items
 const adminNavItems: NavItem[] = [
@@ -49,6 +52,11 @@ const adminNavItems: NavItem[] = [
     ],
   },
   {
+    label: 'Manage Services',
+    path: '/admin/services',
+    icon: <Layers size={20} />,
+  },
+  {
     label: 'Profile',
     path: '/admin/profile',
     icon: <User size={20} />,
@@ -60,6 +68,10 @@ const AppRoutes: React.FC = () => {
     <Routes>
       {/* Home page as the landing page */}
       <Route path="/" element={<Home />} />
+
+      {/* Public service pages */}
+      <Route path="/services" element={<Services />} />
+      <Route path="/services/:id" element={<ServiceDetails />} />
 
       {/* Profile page - accessible to all logged-in users */}
       <Route 
@@ -83,6 +95,7 @@ const AppRoutes: React.FC = () => {
         <Route path="dashboard" element={<AdminDashboardHome />} />
         <Route path="technicians/verify-kyc" element={<VerifyKYC />} />
         <Route path="technicians/manage" element={<ManageTechnicians />} />
+        <Route path="services" element={<ManageServices />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
