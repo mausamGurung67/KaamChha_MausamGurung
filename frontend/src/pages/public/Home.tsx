@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronUp, ArrowRight, Star, ChevronLeft, ChevronRight, Phone, Mail, MapPin, Facebook, Twitter } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronDown, ChevronUp, ArrowRight, Star, Phone, Mail, MapPin, Facebook, Twitter } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
+import { listCategories, type Category } from '../../services/category.service';
 
-// Image imports
+// Category image imports
+import catPlumbing from '../../assets/images/categories/plumbing.png';
+import catElectrical from '../../assets/images/categories/electrical.png';
+import catCleaning from '../../assets/images/categories/cleaning.png';
+import catPainting from '../../assets/images/categories/painting.png';
+import catCarpentry from '../../assets/images/categories/carpentry.png';
+import catAppliance from '../../assets/images/categories/appliance-repair.png';
+import catGardening from '../../assets/images/categories/gardening.png';
+import catPestControl from '../../assets/images/categories/pest-control.png';
+import catHomeShifting from '../../assets/images/categories/home-shifting.png';
+import catCctv from '../../assets/images/categories/cctv-security.png';
+
+// Other image imports
 import illushome from '../../assets/images/illushome.png';
 import heroBg from '../../assets/images/hero11.png';
 import hw1 from '../../assets/images/hw1.png';
@@ -13,10 +26,25 @@ import hw5 from '../../assets/images/hw5.png';
 import hw6 from '../../assets/images/hw6.png';
 import footerLogo from '../../assets/images/footerillus.png';
 
+// Map category names to local images
+const categoryImageMap: Record<string, string> = {
+  'Plumbing': catPlumbing,
+  'Electrical': catElectrical,
+  'Cleaning': catCleaning,
+  'Painting': catPainting,
+  'Carpentry': catCarpentry,
+  'Appliance Repair': catAppliance,
+  'Gardening': catGardening,
+  'Pest Control': catPestControl,
+  'Home Shifting': catHomeShifting,
+  'CCTV & Security': catCctv,
+};
+
 const Home: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const [categories, setCategories] = useState<Category[]>([]);
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Scroll to section when navigated from another page
   useEffect(() => {
@@ -25,23 +53,20 @@ const Home: React.FC = () => {
       setTimeout(() => {
         document.getElementById(state.scrollTo!)?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
-      // Clear the state so it doesn't re-scroll on re-renders
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
+  // Fetch categories from API
+  useEffect(() => {
+    listCategories().then((res) => {
+      if (res.success) setCategories(res.data);
+    });
+  }, []);
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
-
-  const services = [
-    { name: 'Plumbing', image: 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&q=80&w=400' },
-    { name: 'Electrical', image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=400' },
-    { name: 'Cleaning', image: 'https://images.unsplash.com/photo-1581578731117-104f2a41272c?auto=format&fit=crop&q=80&w=400' },
-    { name: 'Painting', image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=400' },
-  ];
-
-  const categories = ['Plumbing', 'Electrical', 'Cleaning', 'Carpentry', 'Painting', 'Garden'];
 
   const testimonials = [
     {
@@ -144,12 +169,13 @@ const Home: React.FC = () => {
 
               {/* Right: Category Pills */}
               <div className="flex flex-wrap gap-3 max-w-sm">
-                {categories.map((cat) => (
+                {categories.slice(0, 6).map((cat) => (
                   <span 
-                    key={cat} 
+                    key={cat.id}
+                    onClick={() => navigate(`/services?category=${cat.id}`)}
                     className="px-5 py-2.5 bg-white/25 backdrop-blur-md border border-white/40 rounded-full text-white text-sm font-medium cursor-pointer hover:bg-white/35 transition shadow-lg"
                   >
-                    {cat}
+                    {cat.name}
                   </span>
                 ))}
               </div>
@@ -169,49 +195,29 @@ const Home: React.FC = () => {
             </h2>
           </div>
 
-          {/* Services Carousel */}
+          {/* Categories Grid */}
           <div className="relative">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-7">
-              {services.map((service, index) => (
-                <div 
-                  key={index} 
+              {(categories.length > 0 ? categories.slice(0, 8) : []).map((cat) => (
+                <div
+                  key={cat.id}
+                  onClick={() => navigate(`/services?category=${cat.id}`)}
                   className="group relative overflow-hidden rounded-3xl cursor-pointer h-72 shadow-xl hover:shadow-2xl transition-all duration-300"
                 >
                   <img 
-                    src={service.image}
-                    alt={service.name} 
+                    src={categoryImageMap[cat.name] || cat.image || ''}
+                    alt={cat.name} 
                     className="w-full h-full object-cover group-hover:scale-110 transition duration-700" 
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
                   <div className="absolute bottom-0 left-0 w-full p-6">
-                    <h3 className="text-white text-xl font-bold">{service.name}</h3>
+                    <h3 className="text-white text-xl font-bold">{cat.name}</h3>
+                    {cat._count && (
+                      <p className="text-white/70 text-sm mt-1">{cat._count.services} services</p>
+                    )}
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* Carousel Navigation */}
-            <div className="flex justify-center items-center gap-5 mt-10">
-              <button 
-                onClick={() => setCurrentSlide(Math.max(0, currentSlide - 1))}
-                className="p-3 rounded-full border-2 border-gray-300 hover:border-orange-500 hover:text-orange-500 hover:bg-orange-50 transition-all"
-              >
-                <ChevronLeft size={20} />
-              </button>
-              <div className="flex gap-2.5">
-                {[0, 1, 2, 3].map((dot) => (
-                  <span 
-                    key={dot} 
-                    className={`w-2.5 h-2.5 rounded-full transition-all ${currentSlide === dot ? 'bg-orange-500 w-8' : 'bg-gray-300'}`}
-                  />
-                ))}
-              </div>
-              <button 
-                onClick={() => setCurrentSlide(Math.min(3, currentSlide + 1))}
-                className="p-3 rounded-full border-2 border-gray-300 hover:border-orange-500 hover:text-orange-500 hover:bg-orange-50 transition-all"
-              >
-                <ChevronRight size={20} />
-              </button>
             </div>
           </div>
 

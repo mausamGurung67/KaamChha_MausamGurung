@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   Search,
   Clock,
@@ -8,19 +8,30 @@ import {
   Loader2,
   Layers,
   ArrowRight,
+  ChevronDown,
+  Star,
 } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 import { listServices, type ServiceItem } from '../../services/service.service';
 import { listCategories, type Category } from '../../services/category.service';
 
 const Services: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
   const [search, setSearch] = useState('');
-  const [catFilter, setCatFilter] = useState('');
+  const [catFilter, setCatFilter] = useState(searchParams.get('category') || '');
+  const [priceSort, setPriceSort] = useState('');
+  const [ratingSort, setRatingSort] = useState('');
+
+  // Dropdowns open state
+  const [catDropdownOpen, setCatDropdownOpen] = useState(false);
+  const [priceDropdownOpen, setPriceDropdownOpen] = useState(false);
+  const [ratingDropdownOpen, setRatingDropdownOpen] = useState(false);
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -28,17 +39,21 @@ const Services: React.FC = () => {
       const params: any = { page, limit: 12 };
       if (search.trim()) params.search = search.trim();
       if (catFilter) params.categoryId = catFilter;
+      if (priceSort === 'low') { params.minPrice = '0'; params.maxPrice = '500'; }
+      if (priceSort === 'mid') { params.minPrice = '500'; params.maxPrice = '2000'; }
+      if (priceSort === 'high') { params.minPrice = '2000'; }
       const res = await listServices(params);
       if (res.success) {
         setServices(res.data.services);
         setTotalPages(res.data.totalPages);
+        setTotalCount(res.data.total);
       }
     } catch {
       // silent
     } finally {
       setLoading(false);
     }
-  }, [page, search, catFilter]);
+  }, [page, search, catFilter, priceSort]);
 
   useEffect(() => {
     fetchServices();
@@ -50,55 +65,165 @@ const Services: React.FC = () => {
     });
   }, []);
 
+  // Sync URL category param
+  useEffect(() => {
+    const urlCat = searchParams.get('category');
+    if (urlCat && urlCat !== catFilter) {
+      setCatFilter(urlCat);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     setPage(1);
-  }, [search, catFilter]);
+  }, [search, catFilter, priceSort, ratingSort]);
+
+  // Update URL when category changes
+  const handleCategoryChange = (catId: string) => {
+    setCatFilter(catId);
+    setCatDropdownOpen(false);
+    if (catId) {
+      setSearchParams({ category: catId });
+    } else {
+      setSearchParams({});
+    }
+  };
+
+  const selectedCategoryName = categories.find(c => c.id === catFilter)?.name || 'Categories';
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      {/* Header */}
-      <section className="pt-28 pb-10 px-6 bg-white border-b border-gray-100">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Our Services</h1>
-          <p className="text-gray-500 mt-2 max-w-xl">
-            Browse our wide range of home services. Book a trusted technician in just a few clicks.
-          </p>
+      {/* ========= SUB-NAVBAR: Search + Filters ========= */}
+      <section className="pt-[72px] bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center gap-4">
+          {/* Search */}
+          <div className="relative flex-1 max-w-sm">
+            <Search
+              size={18}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+            />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search Services"
+              className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-gray-50"
+            />
+          </div>
 
-          {/* Search + filter */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-6">
-            <div className="relative flex-1 max-w-md">
-              <Search
-                size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
-              />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search services..."
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-              />
+          {/* Filter Dropdowns */}
+          <div className="flex items-center gap-3">
+            {/* Categories Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { setCatDropdownOpen(!catDropdownOpen); setPriceDropdownOpen(false); setRatingDropdownOpen(false); }}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border text-sm font-medium transition ${
+                  catFilter ? 'border-orange-300 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                {selectedCategoryName}
+                <ChevronDown size={15} className={`transition-transform ${catDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {catDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50 max-h-64 overflow-y-auto">
+                  <button
+                    onClick={() => handleCategoryChange('')}
+                    className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition ${!catFilter ? 'text-orange-500 font-medium bg-orange-50/50' : 'text-gray-700'}`}
+                  >
+                    All Categories
+                  </button>
+                  {categories.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => handleCategoryChange(c.id)}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition ${catFilter === c.id ? 'text-orange-500 font-medium bg-orange-50/50' : 'text-gray-700'}`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-            <select
-              value={catFilter}
-              onChange={(e) => setCatFilter(e.target.value)}
-              className="px-4 py-3 rounded-xl border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-orange-400"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+
+            {/* Price Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { setPriceDropdownOpen(!priceDropdownOpen); setCatDropdownOpen(false); setRatingDropdownOpen(false); }}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border text-sm font-medium transition ${
+                  priceSort ? 'border-orange-300 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                Price
+                <ChevronDown size={15} className={`transition-transform ${priceDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {priceDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                  {[
+                    { value: '', label: 'All Prices' },
+                    { value: 'low', label: 'Under NPR 500' },
+                    { value: 'mid', label: 'NPR 500 - 2000' },
+                    { value: 'high', label: 'Above NPR 2000' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setPriceSort(opt.value); setPriceDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition ${priceSort === opt.value ? 'text-orange-500 font-medium bg-orange-50/50' : 'text-gray-700'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Rating Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => { setRatingDropdownOpen(!ratingDropdownOpen); setCatDropdownOpen(false); setPriceDropdownOpen(false); }}
+                className={`flex items-center gap-1.5 px-4 py-2.5 rounded-lg border text-sm font-medium transition ${
+                  ratingSort ? 'border-orange-300 bg-orange-50 text-orange-600' : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                }`}
+              >
+                Rating
+                <ChevronDown size={15} className={`transition-transform ${ratingDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {ratingDropdownOpen && (
+                <div className="absolute top-full right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
+                  {[
+                    { value: '', label: 'All Ratings' },
+                    { value: '4', label: '4 Stars & above' },
+                    { value: '3', label: '3 Stars & above' },
+                  ].map((opt) => (
+                    <button
+                      key={opt.value}
+                      onClick={() => { setRatingSort(opt.value); setRatingDropdownOpen(false); }}
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-orange-50 transition ${ratingSort === opt.value ? 'text-orange-500 font-medium bg-orange-50/50' : 'text-gray-700'}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Service grid */}
-      <section className="py-10 px-6">
+      {/* ========= Service Count ========= */}
+      <section className="px-6 pt-6 pb-2">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-gray-500 text-sm">
+            Showing <span className="font-bold text-gray-900">{totalCount} Services</span>
+            {catFilter && categories.find(c => c.id === catFilter) && (
+              <span> in <span className="font-semibold text-orange-500">{categories.find(c => c.id === catFilter)?.name}</span></span>
+            )}
+          </p>
+        </div>
+      </section>
+
+      {/* ========= Service Grid ========= */}
+      <section className="py-6 px-6">
         <div className="max-w-7xl mx-auto">
           {loading ? (
             <div className="flex items-center justify-center h-64">
@@ -108,7 +233,19 @@ const Services: React.FC = () => {
             <div className="text-center py-20">
               <Layers size={56} className="mx-auto text-gray-300 mb-4" />
               <p className="text-gray-500 font-medium text-lg">No services found</p>
-              <p className="text-gray-400 text-sm mt-1">Try a different search or category</p>
+              <p className="text-gray-400 text-sm mt-1">
+                {catFilter
+                  ? 'No services available in this category yet. Try a different category.'
+                  : 'Try a different search or category'}
+              </p>
+              {catFilter && (
+                <button
+                  onClick={() => handleCategoryChange('')}
+                  className="mt-4 text-orange-500 hover:text-orange-600 font-medium text-sm"
+                >
+                  Clear category filter
+                </button>
+              )}
             </div>
           ) : (
             <>
@@ -133,7 +270,7 @@ const Services: React.FC = () => {
                         </div>
                       )}
                       {/* Category badge */}
-                      <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-xs font-medium text-gray-700 px-3 py-1 rounded-full shadow-sm">
+                      <span className="absolute top-3 left-3 bg-orange-500 text-white text-xs font-medium px-3 py-1 rounded-full shadow-sm">
                         {svc.category?.name}
                       </span>
                     </div>
@@ -143,7 +280,10 @@ const Services: React.FC = () => {
                       <h3 className="font-semibold text-gray-900 text-lg group-hover:text-orange-500 transition-colors">
                         {svc.name}
                       </h3>
-                      <p className="text-gray-400 text-sm mt-1 line-clamp-2">
+                      <p className="text-orange-500 text-xs font-medium mt-0.5">
+                        by Kaam Chha
+                      </p>
+                      <p className="text-gray-400 text-sm mt-2 line-clamp-2">
                         {svc.description || 'No description available'}
                       </p>
 
@@ -153,30 +293,17 @@ const Services: React.FC = () => {
                           <span>{svc.duration} min</span>
                         </div>
                         <p className="text-orange-500 font-bold text-lg">
-                          Rs. {Number(svc.price).toLocaleString()}
+                          NPR {Number(svc.price).toLocaleString()}
                         </p>
                       </div>
 
-                      <div className="mt-4 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          {svc.creator?.profile?.avatar ? (
-                            <img
-                              src={svc.creator.profile.avatar}
-                              alt=""
-                              className="w-6 h-6 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-6 h-6 rounded-full bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-600">
-                              {(
-                                svc.creator?.profile?.name ||
-                                svc.creator?.email ||
-                                'U'
-                              )[0].toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-xs text-gray-400">
-                            {svc.creator?.profile?.name || 'Admin'}
-                          </span>
+                      {/* Rating (static for now) */}
+                      <div className="mt-3 flex items-center justify-between">
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star key={star} size={13} className="text-gray-200 fill-gray-200" />
+                          ))}
+                          <span className="text-xs text-gray-400 ml-1">No reviews</span>
                         </div>
                         <span className="text-orange-500 text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                           View <ArrowRight size={14} />
@@ -213,6 +340,14 @@ const Services: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* Close dropdowns on click outside */}
+      {(catDropdownOpen || priceDropdownOpen || ratingDropdownOpen) && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => { setCatDropdownOpen(false); setPriceDropdownOpen(false); setRatingDropdownOpen(false); }}
+        />
+      )}
     </div>
   );
 };
