@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { ChevronDown, User, LogOut, LayoutDashboard, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/images/logo.png';
 
@@ -163,6 +163,16 @@ const Navbar: React.FC = () => {
                     >
                       <LayoutDashboard size={16} />
                       <span>My Dashboard</span>
+                    </Link>
+                  )}
+                  {user.role === 'CUSTOMER' && (
+                    <Link
+                      to="/my-bookings"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                    >
+                      <ClipboardList size={16} />
+                      <span>My Bookings</span>
                     </Link>
                   )}
                   <Link

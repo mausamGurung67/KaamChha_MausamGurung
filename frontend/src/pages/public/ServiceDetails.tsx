@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Clock,
   ArrowLeft,
@@ -18,15 +18,19 @@ import LoginPromptModal from '../../components/common/LoginPromptModal';
 import MapPicker, { type LatLng } from '../../components/common/MapPicker';
 import { useAuth } from '../../hooks/useAuth';
 import { getServiceById, type ServiceItem } from '../../services/service.service';
+import { createBooking } from '../../services/booking.service';
 
 const ServiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [service, setService] = useState<ServiceItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentImage, setCurrentImage] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [booking, setBooking] = useState(false);
+  const [bookingError, setBookingError] = useState('');
 
   // ── Booking form state ──
   const [selectedPosition, setSelectedPosition] = useState<LatLng | null>(null);
@@ -58,13 +62,46 @@ const ServiceDetails: React.FC = () => {
     setServiceAddress(address);
   };
 
-  const handleBookService = () => {
+  const handleBookService = async () => {
     if (!user) {
       setShowLoginModal(true);
       return;
     }
-    // TODO: proceed with actual booking flow
-    console.log('Booking with:', { selectedPosition, serviceAddress, selectedDate, selectedTime });
+    if (!serviceAddress.trim()) {
+      setBookingError('Please select a location or enter an address');
+      return;
+    }
+    if (!selectedTime) {
+      setBookingError('Please select a time slot');
+      return;
+    }
+    if (!service || !id) return;
+
+    setBookingError('');
+    setBooking(true);
+    try {
+      // Build scheduledAt from selected date + time
+      const [time, meridiem] = selectedTime.split(' ');
+      let [h, m] = time.split(':').map(Number);
+      if (meridiem === 'PM' && h !== 12) h += 12;
+      if (meridiem === 'AM' && h === 12) h = 0;
+      const scheduledDate = new Date(selectedDate);
+      scheduledDate.setHours(h, m, 0, 0);
+
+      await createBooking({
+        serviceId: id,
+        scheduledAt: scheduledDate.toISOString(),
+        serviceLatitude: selectedPosition?.lat || 27.7172,
+        serviceLongitude: selectedPosition?.lng || 85.3240,
+        serviceAddress: serviceAddress.trim(),
+      });
+
+      navigate('/my-bookings', { state: { bookingSuccess: true } });
+    } catch (err: any) {
+      setBookingError(err?.response?.data?.message || 'Failed to create booking. Please try again.');
+    } finally {
+      setBooking(false);
+    }
   };
 
   useEffect(() => {
@@ -458,11 +495,18 @@ const ServiceDetails: React.FC = () => {
                   </div>
 
                   {/* Book Service Button */}
+                  {bookingError && (
+                    <p className="text-xs text-red-500 mb-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                      {bookingError}
+                    </p>
+                  )}
                   <button
                     onClick={handleBookService}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm shadow-orange-500/20 hover:shadow-md"
+                    disabled={booking}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm shadow-orange-500/20 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
-                    Book Service
+                    {booking && <Loader2 size={18} className="animate-spin" />}
+                    {booking ? 'Booking...' : 'Book Service'}
                   </button>
                 </div>
 

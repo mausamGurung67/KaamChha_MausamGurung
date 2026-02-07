@@ -5,7 +5,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import RoleRedirect from '../components/common/RoleRedirect';
-import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -30,6 +30,9 @@ import VerifyKYC from '../pages/admin/VerifyKYC';
 import ManageTechnicians from '../pages/admin/ManageTechnicians';
 import ManageServices from '../pages/admin/ManageServices';
 import ManageCustomers from '../pages/admin/ManageCustomers';
+import AdminBookings from '../pages/admin/AdminBookings';
+import MyBookings from '../pages/customer/MyBookings';
+import TechnicianBookings from '../pages/technician/TechnicianBookings';
 
 // Admin sidebar nav items
 const adminNavItems: NavItem[] = [
@@ -58,6 +61,11 @@ const adminNavItems: NavItem[] = [
     label: 'Manage Services',
     path: '/admin/services',
     icon: <Layers size={20} />,
+  },
+  {
+    label: 'Manage Bookings',
+    path: '/admin/bookings',
+    icon: <ClipboardList size={20} />,
   },
   {
     label: 'Manage Customers',
@@ -94,6 +102,16 @@ const AppRoutes: React.FC = () => {
         } 
       />
 
+      {/* Customer My Bookings page */}
+      <Route
+        path="/my-bookings"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <MyBookings />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Admin Routes - wrapped in DashboardLayout */}
       <Route
         path="/admin"
@@ -107,6 +125,7 @@ const AppRoutes: React.FC = () => {
         <Route path="technicians/verify-kyc" element={<VerifyKYC />} />
         <Route path="technicians/manage" element={<ManageTechnicians />} />
         <Route path="services" element={<ManageServices />} />
+        <Route path="bookings" element={<AdminBookings />} />
         <Route path="customers" element={<ManageCustomers />} />
         <Route path="profile" element={<Profile />} />
       </Route>
@@ -121,6 +140,7 @@ const AppRoutes: React.FC = () => {
         }
       >
         <Route path="dashboard" element={<TechnicianDashboard />} />
+        <Route path="requests" element={<TechnicianBookings />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 

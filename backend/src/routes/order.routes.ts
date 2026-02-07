@@ -10,6 +10,8 @@ import {
   getOrderSchema,
   listOrdersSchema,
   cancelOrderSchema,
+  rejectOrderSchema,
+  completeByTechnicianSchema,
 } from '../validators/order.validator';
 
 const router = Router();
@@ -39,6 +41,36 @@ router.post(
   '/:id/cancel',
   validate(cancelOrderSchema),
   orderController.cancelOrder
+);
+
+// Technician booking actions
+router.post(
+  '/:id/accept',
+  authorize(UserRole.TECHNICIAN),
+  validate(getOrderSchema),
+  orderController.acceptOrder
+);
+
+router.post(
+  '/:id/reject',
+  authorize(UserRole.TECHNICIAN),
+  validate(rejectOrderSchema),
+  orderController.rejectOrder
+);
+
+router.post(
+  '/:id/complete-technician',
+  authorize(UserRole.TECHNICIAN),
+  validate(completeByTechnicianSchema),
+  orderController.completeByTechnician
+);
+
+// Customer confirms completion
+router.post(
+  '/:id/confirm-completion',
+  authorize(UserRole.CUSTOMER),
+  validate(getOrderSchema),
+  orderController.confirmCompletion
 );
 
 // Admin routes

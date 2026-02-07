@@ -108,4 +108,46 @@ export const cancelOrder = async (req: Request, res: Response): Promise<void> =>
   });
 };
 
+export const acceptOrder = async (req: Request, res: Response): Promise<void> => {
+  const order = await orderService.acceptOrder(req.params.id, req.userId!);
 
+  res.json({
+    success: true,
+    message: 'Booking accepted successfully',
+    data: { order },
+  });
+};
+
+export const rejectOrder = async (req: Request, res: Response): Promise<void> => {
+  const order = await orderService.rejectOrder(req.params.id, req.userId!, req.body.reason);
+
+  res.json({
+    success: true,
+    message: 'Booking rejected',
+    data: { order },
+  });
+};
+
+export const completeByTechnician = async (req: Request, res: Response): Promise<void> => {
+  const order = await orderService.completeByTechnician(req.params.id, req.userId!, {
+    notes: req.body.notes,
+    beforePhotos: req.body.beforePhotos,
+    afterPhotos: req.body.afterPhotos,
+  });
+
+  res.json({
+    success: true,
+    message: 'Booking marked as completed',
+    data: { order },
+  });
+};
+
+export const confirmCompletion = async (req: Request, res: Response): Promise<void> => {
+  const order = await orderService.confirmCompletion(req.params.id, req.userId!);
+
+  res.json({
+    success: true,
+    message: 'Booking completion confirmed',
+    data: { order },
+  });
+};

@@ -19,8 +19,11 @@ enum UserRole {
 enum OrderStatus {
   PENDING
   CONFIRMED
+  ACCEPTED
+  REJECTED
   ASSIGNED
   IN_PROGRESS
+  COMPLETED_BY_TECHNICIAN
   COMPLETED
   CANCELLED
 }
@@ -167,6 +170,9 @@ model Order {
   serviceLatitude   Float?
   serviceLongitude  Float?
   serviceAddress    String?
+  technicianNotes   String?
+  beforePhotos      String[]  @default([])
+  afterPhotos       String[]  @default([])
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 

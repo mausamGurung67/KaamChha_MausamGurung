@@ -325,10 +325,13 @@ export const updateOrderStatus = async (
 
   // Validate status transitions
   const validTransitions: Record<OrderStatus, OrderStatus[]> = {
-    PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+    PENDING: [OrderStatus.ACCEPTED, OrderStatus.REJECTED, OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+    ACCEPTED: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
+    REJECTED: [],
     CONFIRMED: [OrderStatus.ASSIGNED, OrderStatus.CANCELLED],
     ASSIGNED: [OrderStatus.IN_PROGRESS, OrderStatus.CANCELLED],
-    IN_PROGRESS: [OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+    IN_PROGRESS: [OrderStatus.COMPLETED_BY_TECHNICIAN, OrderStatus.COMPLETED, OrderStatus.CANCELLED],
+    COMPLETED_BY_TECHNICIAN: [OrderStatus.COMPLETED],
     COMPLETED: [],
     CANCELLED: [],
   };
@@ -611,3 +614,168 @@ export const cancelOrder = async (
   return updatedOrder;
 };
 
+// ── Technician accepts a booking ──────────────────────
+export const acceptOrder = async (orderId: string, technicianId: string): Promise<any> => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+  });
+
+  if (!order) throw new Error('Booking not found');
+  if (order.status !== OrderStatus.PENDING) throw new Error('Booking is not in PENDING status');
+
+  // Verify technician exists and has approved KYC
+  const technician = await prisma.user.findUnique({
+    where: { id: technicianId },
+    include: { kyc: true },
+  });
+
+  if (!technician || technician.role !== UserRole.TECHNICIAN) throw new Error('Invalid technician');
+  if (!technician.isActive) throw new Error('Technician is not active');
+  if (!technician.kyc || technician.kyc.status !== 'APPROVED') throw new Error('Technician KYC not approved');
+
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      technicianId,
+      status: OrderStatus.ACCEPTED,
+    },
+    include: {
+      service: { include: { category: true } },
+      customer: {
+        select: { id: true, email: true, profile: { select: { name: true, phone: true } } },
+      },
+      technician: {
+        select: { id: true, email: true, profile: { select: { name: true, phone: true, avatar: true } } },
+      },
+    },
+  });
+
+  await prisma.bookingHistory.create({
+    data: {
+      orderId,
+      userId: technicianId,
+      action: 'BOOKING_ACCEPTED',
+      status: OrderStatus.ACCEPTED,
+      notes: `Booking accepted by technician`,
+    },
+  });
+
+  return updatedOrder;
+};
+
+// ── Technician rejects a booking ──────────────────────
+export const rejectOrder = async (orderId: string, technicianId: string, reason?: string): Promise<any> => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+  });
+
+  if (!order) throw new Error('Booking not found');
+  if (order.status !== OrderStatus.PENDING) throw new Error('Booking is not in PENDING status');
+
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status: OrderStatus.REJECTED,
+    },
+  });
+
+  await prisma.bookingHistory.create({
+    data: {
+      orderId,
+      userId: technicianId,
+      action: 'BOOKING_REJECTED',
+      status: OrderStatus.REJECTED,
+      notes: reason || 'Booking rejected by technician',
+    },
+  });
+
+  return updatedOrder;
+};
+
+// ── Technician marks booking as complete ──────────────
+export const completeByTechnician = async (
+  orderId: string,
+  technicianId: string,
+  data: { notes?: string; beforePhotos?: string[]; afterPhotos?: string[] }
+): Promise<any> => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+  });
+
+  if (!order) throw new Error('Booking not found');
+  if (order.technicianId !== technicianId) throw new Error('Unauthorized');
+  if (order.status !== OrderStatus.IN_PROGRESS) throw new Error('Booking must be IN_PROGRESS');
+
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status: OrderStatus.COMPLETED_BY_TECHNICIAN,
+      technicianNotes: data.notes || null,
+      beforePhotos: data.beforePhotos || [],
+      afterPhotos: data.afterPhotos || [],
+    },
+    include: {
+      service: { include: { category: true } },
+      customer: {
+        select: { id: true, email: true, profile: { select: { name: true, phone: true } } },
+      },
+      technician: {
+        select: { id: true, email: true, profile: { select: { name: true, phone: true, avatar: true } } },
+      },
+    },
+  });
+
+  await prisma.bookingHistory.create({
+    data: {
+      orderId,
+      userId: technicianId,
+      action: 'COMPLETED_BY_TECHNICIAN',
+      status: OrderStatus.COMPLETED_BY_TECHNICIAN,
+      notes: data.notes || 'Marked as completed by technician',
+    },
+  });
+
+  return updatedOrder;
+};
+
+// ── Customer confirms completion ──────────────────────
+export const confirmCompletion = async (orderId: string, customerId: string): Promise<any> => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+  });
+
+  if (!order) throw new Error('Booking not found');
+  if (order.customerId !== customerId) throw new Error('Unauthorized');
+  if (order.status !== OrderStatus.COMPLETED_BY_TECHNICIAN) {
+    throw new Error('Booking must be marked as completed by technician first');
+  }
+
+  const updatedOrder = await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      status: OrderStatus.COMPLETED,
+      completedAt: new Date(),
+    },
+    include: {
+      service: { include: { category: true } },
+      customer: {
+        select: { id: true, email: true, profile: { select: { name: true, phone: true } } },
+      },
+      technician: {
+        select: { id: true, email: true, profile: { select: { name: true, phone: true, avatar: true } } },
+      },
+    },
+  });
+
+  await prisma.bookingHistory.create({
+    data: {
+      orderId,
+      userId: customerId,
+      action: 'COMPLETION_CONFIRMED',
+      status: OrderStatus.COMPLETED,
+      notes: 'Customer confirmed completion',
+    },
+  });
+
+  return updatedOrder;
+};

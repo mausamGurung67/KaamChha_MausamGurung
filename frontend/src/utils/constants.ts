@@ -34,13 +34,17 @@ export const API_ENDPOINTS = {
     MY_SERVICES: '/services/my/services',
   },
   
-  // Orders
+  // Orders / Bookings
   ORDERS: {
     LIST: '/orders',
     GET: (id: string) => `/orders/${id}`,
     CREATE: '/orders',
     UPDATE_STATUS: (id: string) => `/orders/${id}/status`,
     CANCEL: (id: string) => `/orders/${id}/cancel`,
+    ACCEPT: (id: string) => `/orders/${id}/accept`,
+    REJECT: (id: string) => `/orders/${id}/reject`,
+    COMPLETE_TECHNICIAN: (id: string) => `/orders/${id}/complete-technician`,
+    CONFIRM_COMPLETION: (id: string) => `/orders/${id}/confirm-completion`,
     ASSIGN: (id: string) => `/orders/${id}/assign`,
     AUTO_ASSIGN: (id: string) => `/orders/${id}/auto-assign`,
   },
@@ -149,9 +153,12 @@ export const DATETIME_FORMAT = 'MMM DD, YYYY hh:mm A';
 // Status Colors
 export const ORDER_STATUS_COLORS = {
   PENDING: 'bg-yellow-100 text-yellow-800',
+  ACCEPTED: 'bg-blue-100 text-blue-800',
+  REJECTED: 'bg-red-100 text-red-800',
   CONFIRMED: 'bg-blue-100 text-blue-800',
   ASSIGNED: 'bg-indigo-100 text-indigo-800',
   IN_PROGRESS: 'bg-purple-100 text-purple-800',
+  COMPLETED_BY_TECHNICIAN: 'bg-teal-100 text-teal-800',
   COMPLETED: 'bg-green-100 text-green-800',
   CANCELLED: 'bg-red-100 text-red-800',
 } as const;

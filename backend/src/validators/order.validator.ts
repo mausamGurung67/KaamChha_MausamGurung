@@ -56,3 +56,23 @@ export const cancelOrderSchema = z.object({
   }),
 });
 
+export const rejectOrderSchema = z.object({
+  params: z.object({
+    id: z.string().cuid('Invalid order ID'),
+  }),
+  body: z.object({
+    reason: z.string().optional(),
+  }),
+});
+
+export const completeByTechnicianSchema = z.object({
+  params: z.object({
+    id: z.string().cuid('Invalid order ID'),
+  }),
+  body: z.object({
+    notes: z.string().optional(),
+    beforePhotos: z.array(z.string().url()).optional(),
+    afterPhotos: z.array(z.string().url()).optional(),
+  }),
+});
+
