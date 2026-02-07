@@ -62,7 +62,7 @@ const AboutUs: React.FC = () => {
                 Our Story, Vision<br />and Values
               </h1>
             </div>
-            <div className="lg:w-1/2 lg:pt-3">
+            <div className="lg:w-1/2 lg:pt-3 mt-6">
               <p className="text-gray-500 text-base leading-relaxed">
                 Learn about our commitment to excellence, innovation and principles that
                 guide our work everyday.
