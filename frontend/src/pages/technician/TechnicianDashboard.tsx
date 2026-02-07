@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import * as technicianService from '../../services/technician.service';
 import type { TechnicianStats, RecentOrder } from '../../services/technician.service';
+import { TechDashboardSkeleton } from '../../components/common/Skeleton';
 
 const TechnicianDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -42,14 +43,7 @@ const TechnicianDashboard: React.FC = () => {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4" />
-          <p className="text-gray-500">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+    return <TechDashboardSkeleton />;
   }
 
   if (error) {

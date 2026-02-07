@@ -14,6 +14,7 @@ import {
 import Navbar from '../../components/common/Navbar';
 import { listServices, type ServiceItem } from '../../services/service.service';
 import { listCategories, type Category } from '../../services/category.service';
+import { ServiceCardSkeleton } from '../../components/common/Skeleton';
 
 const Services: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -226,8 +227,10 @@ const Services: React.FC = () => {
       <section className="py-6 px-6">
         <div className="max-w-7xl mx-auto">
           {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="animate-spin h-10 w-10 text-orange-500" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ServiceCardSkeleton key={i} />
+              ))}
             </div>
           ) : services.length === 0 ? (
             <div className="text-center py-20">

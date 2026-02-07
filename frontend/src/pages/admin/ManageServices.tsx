@@ -24,6 +24,7 @@ import {
   type CreateServicePayload,
 } from '../../services/service.service';
 import { listCategories, type Category } from '../../services/category.service';
+import { UserTableSkeleton } from '../../components/common/Skeleton';
 
 const ManageServices: React.FC = () => {
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -318,9 +319,7 @@ const ManageServices: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="animate-spin h-8 w-8 text-orange-500" />
-        </div>
+        <UserTableSkeleton rows={6} />
       ) : services.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
           <Layers size={48} className="mx-auto text-gray-300 mb-3" />

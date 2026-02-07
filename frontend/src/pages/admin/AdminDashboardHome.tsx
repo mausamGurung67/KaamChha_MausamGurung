@@ -10,6 +10,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { getPlatformStats, type PlatformStats } from '../../services/admin.service';
+import { DashboardStatsSkeleton } from '../../components/common/Skeleton';
 
 interface StatCardProps {
   title: string;
@@ -54,8 +55,15 @@ const AdminDashboardHome: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600" />
+      <div className="space-y-8">
+        <div>
+          <div className="h-7 w-48 bg-gray-200 rounded-lg animate-pulse" />
+          <div className="h-4 w-64 bg-gray-200 rounded-lg animate-pulse mt-2" />
+        </div>
+        <DashboardStatsSkeleton count={4} />
+        <DashboardStatsSkeleton count={3} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+        <DashboardStatsSkeleton count={3} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" />
+        <DashboardStatsSkeleton count={4} />
       </div>
     );
   }

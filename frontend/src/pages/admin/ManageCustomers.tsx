@@ -17,6 +17,7 @@ import {
   type CustomerUser,
   type Pagination,
 } from '../../services/admin.service';
+import { UserTableSkeleton } from '../../components/common/Skeleton';
 
 const ManageCustomers: React.FC = () => {
   const [customers, setCustomers] = useState<CustomerUser[]>([]);
@@ -123,9 +124,7 @@ const ManageCustomers: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="animate-spin h-8 w-8 text-orange-500" />
-        </div>
+        <UserTableSkeleton rows={6} />
       ) : customers.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
           <Users size={48} className="mx-auto text-gray-300 mb-3" />

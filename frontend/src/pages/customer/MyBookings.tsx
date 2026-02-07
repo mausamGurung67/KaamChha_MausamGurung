@@ -24,6 +24,7 @@ import {
   type BookingStatus,
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
+import { BookingCardSkeleton } from '../../components/common/Skeleton';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pending',
@@ -181,8 +182,10 @@ const MyBookings: React.FC = () => {
 
           {/* Content */}
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 size={32} className="animate-spin text-orange-500" />
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <BookingCardSkeleton key={i} />
+              ))}
             </div>
           ) : error ? (
             <div className="text-center py-20">

@@ -14,6 +14,7 @@ import {
   verifyKYC,
   type KYCEntry,
 } from '../../services/admin.service';
+import { KYCTableSkeleton } from '../../components/common/Skeleton';
 
 type KYCTab = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
 
@@ -142,9 +143,7 @@ const VerifyKYC: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center h-48">
-          <Loader2 className="animate-spin h-8 w-8 text-blue-600" />
-        </div>
+        <KYCTableSkeleton />
       ) : kycs.length === 0 ? (
         <div className="text-center py-16 bg-gray-50 rounded-xl">
           <ShieldCheck size={48} className="mx-auto text-gray-300 mb-3" />

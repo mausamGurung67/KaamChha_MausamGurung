@@ -19,6 +19,7 @@ import MapPicker, { type LatLng } from '../../components/common/MapPicker';
 import { useAuth } from '../../hooks/useAuth';
 import { getServiceById, type ServiceItem } from '../../services/service.service';
 import { createBooking } from '../../services/booking.service';
+import { ServiceDetailSkeleton } from '../../components/common/Skeleton';
 
 const ServiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -124,9 +125,7 @@ const ServiceDetails: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
-        <div className="flex items-center justify-center h-[60vh]">
-          <Loader2 className="animate-spin h-10 w-10 text-orange-500" />
-        </div>
+        <ServiceDetailSkeleton />
       </div>
     );
   }

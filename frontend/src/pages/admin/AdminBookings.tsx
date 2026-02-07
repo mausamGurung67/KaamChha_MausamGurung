@@ -20,6 +20,7 @@ import {
   type BookingStatus,
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
+import { DashboardStatsSkeleton, BookingTableSkeleton } from '../../components/common/Skeleton';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pending',
@@ -137,8 +138,8 @@ const AdminBookings: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Manage Bookings</h1>
-        <p className="text-sm text-gray-500 mt-1">View and manage all service bookings</p>
+        <h1 className="text-xl font-bold text-gray-900">Booking Monitor</h1>
+        <p className="text-sm text-gray-500 mt-1">Monitor all service bookings and their statuses</p>
       </div>
 
       {/* Stats */}
@@ -186,9 +187,7 @@ const AdminBookings: React.FC = () => {
 
       {/* Table */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 size={32} className="animate-spin text-orange-500" />
-        </div>
+        <BookingTableSkeleton />
       ) : error ? (
         <div className="text-center py-20">
           <AlertTriangle size={48} className="text-red-400 mx-auto mb-4" />
@@ -295,17 +294,8 @@ const AdminBookings: React.FC = () => {
                       </div>
                     )}
 
-                    {/* Admin actions */}
+                    {/* Admin actions — monitoring only, cancel for moderation */}
                     <div className="flex gap-2 pt-2 flex-wrap">
-                      {b.status === 'PENDING' && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleStatusUpdate(b.id, 'CONFIRMED'); }}
-                          disabled={actionLoading === b.id}
-                          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-xs font-medium rounded-lg transition disabled:opacity-50 flex items-center gap-1.5"
-                        >
-                          <CheckCircle size={13} /> Confirm
-                        </button>
-                      )}
                       {!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(b.status) && (
                         <button
                           onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }}

@@ -220,9 +220,18 @@ export const listOrders = async (
   if (userRole === UserRole.CUSTOMER) {
     where.customerId = userId;
   } else if (userRole === UserRole.TECHNICIAN) {
-    where.technicianId = userId;
+    // Show orders assigned to this technician OR
+    // pending unassigned orders for services this technician created
+    where.OR = [
+      { technicianId: userId },
+      {
+        technicianId: null,
+        status: OrderStatus.PENDING,
+        service: { createdBy: userId },
+      },
+    ];
   }
-  // Admin can see all orders
+  // Admin can see all orders (monitoring only)
 
   if (filters.status) {
     where.status = filters.status;
