@@ -87,6 +87,24 @@ export interface TechnicianStats {
   rejectedKYC: number;
 }
 
+export interface CustomerUser {
+  id: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  isEmailVerified: boolean;
+  createdAt: string;
+  profile: {
+    name: string;
+    phone: string;
+    avatar?: string;
+    address?: string;
+  } | null;
+  _count: {
+    orders: number;
+  };
+}
+
 // ─── API calls ───────────────────────────────────────────
 
 export const getPlatformStats = async (): Promise<ApiResponse<PlatformStats>> => {
@@ -107,6 +125,18 @@ export const listTechnicians = async (params?: {
   limit?: number;
 }): Promise<{ success: boolean; data: TechnicianUser[]; pagination: Pagination }> => {
   const response = await api.get(API_ENDPOINTS.ADMIN.TECHNICIANS.LIST, { params });
+  return response.data;
+};
+
+export const listCustomers = async (params?: {
+  isActive?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}): Promise<{ success: boolean; data: CustomerUser[]; pagination: Pagination }> => {
+  const response = await api.get(API_ENDPOINTS.ADMIN.USERS.LIST, {
+    params: { ...params, role: 'CUSTOMER' },
+  });
   return response.data;
 };
 

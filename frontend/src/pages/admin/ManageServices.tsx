@@ -34,6 +34,7 @@ const ManageServices: React.FC = () => {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'true' | 'false'>('all');
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // modal state
@@ -50,9 +51,13 @@ const ManageServices: React.FC = () => {
     price: 0,
     duration: 30,
     image: '',
+    images: [],
+    inclusions: [],
     serviceRadius: undefined,
   });
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [newInclusion, setNewInclusion] = useState('');
 
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -61,7 +66,7 @@ const ManageServices: React.FC = () => {
   const fetchServices = useCallback(async () => {
     setLoading(true);
     try {
-      const params: any = { page, limit: 10 };
+      const params: any = { page, limit: 10, isActive: statusFilter };
       if (search.trim()) params.search = search.trim();
       if (catFilter) params.categoryId = catFilter;
       const res = await listServices(params);
@@ -75,7 +80,7 @@ const ManageServices: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [page, search, catFilter]);
+  }, [page, search, catFilter, statusFilter]);
 
   useEffect(() => {
     fetchServices();
@@ -89,7 +94,7 @@ const ManageServices: React.FC = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [search, catFilter]);
+  }, [search, catFilter, statusFilter]);
 
   useEffect(() => {
     if (feedback) {
@@ -102,16 +107,53 @@ const ManageServices: React.FC = () => {
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if ((formData.images?.length || 0) >= 4) {
+      setFeedback({ type: 'error', message: 'Maximum 4 images allowed' });
+      return;
+    }
     setImageUploading(true);
     try {
       const result = await uploadServiceImage(file);
-      setFormData((prev) => ({ ...prev, image: result.url }));
-      setImagePreview(result.url);
+      setFormData((prev) => ({
+        ...prev,
+        image: prev.image || result.url,
+        images: [...(prev.images || []), result.url],
+      }));
+      setImagePreviews((prev) => [...prev, result.url]);
+      if (!imagePreview) setImagePreview(result.url);
     } catch {
       setFeedback({ type: 'error', message: 'Failed to upload image' });
     } finally {
       setImageUploading(false);
     }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData((prev) => {
+      const newImages = (prev.images || []).filter((_, i) => i !== index);
+      return { ...prev, images: newImages, image: newImages[0] || '' };
+    });
+    setImagePreviews((prev) => {
+      const updated = prev.filter((_, i) => i !== index);
+      setImagePreview(updated[0] || '');
+      return updated;
+    });
+  };
+
+  const addInclusion = () => {
+    if (!newInclusion.trim()) return;
+    setFormData((prev) => ({
+      ...prev,
+      inclusions: [...(prev.inclusions || []), newInclusion.trim()],
+    }));
+    setNewInclusion('');
+  };
+
+  const removeInclusion = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      inclusions: (prev.inclusions || []).filter((_, i) => i !== index),
+    }));
   };
 
   // ── open form ─────────────────────────────────────────
@@ -124,24 +166,33 @@ const ManageServices: React.FC = () => {
       price: 0,
       duration: 30,
       image: '',
+      images: [],
+      inclusions: [],
       serviceRadius: undefined,
     });
     setImagePreview('');
+    setImagePreviews([]);
+    setNewInclusion('');
     setShowForm(true);
   };
 
   const openEditForm = (svc: ServiceItem) => {
     setEditingService(svc);
+    const existingImages = svc.images && svc.images.length > 0 ? svc.images : svc.image ? [svc.image] : [];
     setFormData({
       categoryId: svc.categoryId,
       name: svc.name,
       description: svc.description || '',
       price: Number(svc.price),
       duration: svc.duration,
-      image: svc.image || '',
+      image: svc.image || existingImages[0] || '',
+      images: existingImages,
+      inclusions: svc.inclusions || [],
       serviceRadius: svc.serviceRadius ?? undefined,
     });
-    setImagePreview(svc.image || '');
+    setImagePreview(existingImages[0] || '');
+    setImagePreviews(existingImages);
+    setNewInclusion('');
     setShowForm(true);
   };
 
@@ -252,6 +303,16 @@ const ManageServices: React.FC = () => {
               {c.name}
             </option>
           ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value as 'all' | 'true' | 'false')}
+          className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-orange-400 [&>option:checked]:bg-orange-500 [&>option:checked]:text-white"
+          style={{ accentColor: '#f97316' }}
+        >
+          <option value="all">All Status</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
         </select>
       </div>
 
@@ -507,48 +568,85 @@ const ManageServices: React.FC = () => {
                 </div>
               </div>
 
-              {/* Image */}
+              {/* Images (up to 4) */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Service Image
+                  Service Images (up to 4)
                 </label>
-                {imagePreview ? (
-                  <div className="relative w-full h-40 rounded-lg overflow-hidden border border-gray-200 mb-2">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setImagePreview('');
-                        setFormData((p) => ({ ...p, image: '' }));
-                      }}
-                      className="absolute top-2 right-2 p-1 bg-white/80 rounded-full hover:bg-white text-gray-600"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-colors">
-                    {imageUploading ? (
-                      <Loader2 size={24} className="animate-spin text-orange-400" />
-                    ) : (
-                      <>
-                        <Upload size={24} className="text-gray-400 mb-1" />
-                        <span className="text-xs text-gray-400">Click to upload image</span>
-                      </>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageSelect}
-                      className="hidden"
-                      disabled={imageUploading}
-                    />
-                  </label>
+                <div className="grid grid-cols-2 gap-3 mb-2">
+                  {imagePreviews.map((img, i) => (
+                    <div key={i} className="relative h-28 rounded-lg overflow-hidden border border-gray-200">
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        className="absolute top-1.5 right-1.5 p-1 bg-white/80 rounded-full hover:bg-white text-gray-600"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                  {(imagePreviews.length < 4) && (
+                    <label className="flex flex-col items-center justify-center h-28 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-orange-300 hover:bg-orange-50/30 transition-colors">
+                      {imageUploading ? (
+                        <Loader2 size={20} className="animate-spin text-orange-400" />
+                      ) : (
+                        <>
+                          <Upload size={20} className="text-gray-400 mb-1" />
+                          <span className="text-xs text-gray-400">Add image</span>
+                        </>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageSelect}
+                        className="hidden"
+                        disabled={imageUploading}
+                      />
+                    </label>
+                  )}
+                </div>
+                <p className="text-xs text-gray-400">{imagePreviews.length}/4 images uploaded</p>
+              </div>
+
+              {/* What's Included */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  What's Included
+                </label>
+                {(formData.inclusions || []).length > 0 && (
+                  <ul className="space-y-1.5 mb-2">
+                    {formData.inclusions!.map((item, i) => (
+                      <li key={i} className="flex items-center justify-between bg-gray-50 px-3 py-1.5 rounded-lg text-sm text-gray-700">
+                        <span>{item}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeInclusion(i)}
+                          className="text-gray-400 hover:text-red-500 ml-2"
+                        >
+                          <X size={14} />
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
                 )}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newInclusion}
+                    onChange={(e) => setNewInclusion(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addInclusion(); } }}
+                    placeholder="e.g. Leak testing and verification"
+                    className="flex-1 px-3 py-2 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                  />
+                  <button
+                    type="button"
+                    onClick={addInclusion}
+                    className="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium"
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
 
               {/* Submit */}

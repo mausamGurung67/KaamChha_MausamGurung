@@ -89,6 +89,7 @@ export interface AuthContextType extends AuthState {
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (code: string, newPassword: string) => Promise<void>;
   googleLogin: (token: string) => Promise<void>;
+  setUser: (user: User | null) => void;
   clearError: () => void;
   error: string | null;
 }

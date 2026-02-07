@@ -59,6 +59,12 @@ export const API_ENDPOINTS = {
     UPDATE_PROFILE: '/technician/profile',
     EARNINGS: '/technician/earnings',
   },
+
+  // Profile (general - any authenticated user)
+  PROFILE: {
+    GET: '/profile',
+    UPDATE: '/profile',
+  },
   
   // Location
   LOCATION: {

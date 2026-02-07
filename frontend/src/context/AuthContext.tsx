@@ -221,6 +221,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     forgotPassword,
     resetPassword,
     googleLogin,
+    setUser,
     clearError,
   };
 

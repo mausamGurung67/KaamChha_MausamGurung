@@ -131,6 +131,8 @@ model Service {
   price         Decimal  @db.Decimal(10, 2)
   duration      Int      // in minutes
   image         String?
+  images        String[] @default([])
+  inclusions    String[] @default([])
   createdBy     String
   isActive      Boolean  @default(true)
   serviceRadius Float?   // in kilometers

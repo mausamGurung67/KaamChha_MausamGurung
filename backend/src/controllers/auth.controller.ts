@@ -13,6 +13,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   setCookie(res, 'accessToken', accessToken, ACCESS_TOKEN_MAX_AGE);
   setCookie(res, 'refreshToken', refreshToken, REFRESH_TOKEN_MAX_AGE);
 
+  // Fetch profile to include name & phone
+  const prisma = (await import('../config/database')).default;
+  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+
   res.status(201).json({
     success: true,
     message: 'Registration successful. Please verify your email.',
@@ -22,6 +26,8 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         role: user.role,
         isEmailVerified: user.isEmailVerified,
+        name: profile?.name || req.body.name || null,
+        phone: profile?.phone || req.body.phone || null,
       },
     },
   });
@@ -33,6 +39,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   setCookie(res, 'accessToken', accessToken, ACCESS_TOKEN_MAX_AGE);
   setCookie(res, 'refreshToken', refreshToken, REFRESH_TOKEN_MAX_AGE);
 
+  // Fetch profile to include name & phone
+  const prisma = (await import('../config/database')).default;
+  const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+
   res.json({
     success: true,
     message: 'Login successful',
@@ -42,6 +52,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         email: user.email,
         role: user.role,
         isEmailVerified: user.isEmailVerified,
+        name: profile?.name || null,
+        phone: profile?.phone || null,
       },
     },
   });

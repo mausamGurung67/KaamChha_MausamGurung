@@ -80,16 +80,21 @@ const ServiceDetails: React.FC = () => {
     );
   }
 
-  // Build image array (use service image, repeated for gallery effect since we have 1 image)
-  const images = service.image ? [service.image, service.image, service.image] : [];
+  // Build image array from service.images (multi-image) or fall back to single image
+  const images = (service.images && service.images.length > 0)
+    ? service.images
+    : service.image
+    ? [service.image]
+    : [];
 
-  const staticInclusions = [
-    'Tap leak and diagnosis repair',
-    'Water and seal replacement',
-    'Water flow optimization',
-    'Leak testing and verification',
-    'Basic clean up after service',
-  ];
+  const inclusions = (service.inclusions && service.inclusions.length > 0)
+    ? service.inclusions
+    : [
+        'Professional service by verified technicians',
+        'Quality materials and tools',
+        'Post-service cleanup',
+        'Service warranty included',
+      ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -198,7 +203,7 @@ const ServiceDetails: React.FC = () => {
                     What's Included
                   </h3>
                   <ul className="space-y-2">
-                    {staticInclusions.map((item, i) => (
+                    {inclusions.map((item, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
                         <span className="text-gray-400 mt-0.5">•</span>
                         {item}

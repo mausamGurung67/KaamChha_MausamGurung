@@ -11,6 +11,8 @@ export interface ServiceItem {
   price: string; // Decimal comes as string from Prisma
   duration: number;
   image?: string | null;
+  images?: string[];
+  inclusions?: string[];
   createdBy: string;
   isActive: boolean;
   serviceRadius?: number | null;
@@ -40,6 +42,8 @@ export interface CreateServicePayload {
   price: number;
   duration: number;
   image?: string;
+  images?: string[];
+  inclusions?: string[];
   serviceRadius?: number;
 }
 
@@ -50,6 +54,7 @@ export const listServices = async (params?: {
   search?: string;
   minPrice?: string;
   maxPrice?: string;
+  isActive?: string;
   page?: number;
   limit?: number;
 }): Promise<{ success: boolean; data: ServiceListResponse }> => {

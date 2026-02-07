@@ -5,7 +5,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import RoleRedirect from '../components/common/RoleRedirect';
-import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -29,6 +29,7 @@ import AdminDashboardHome from '../pages/admin/AdminDashboardHome';
 import VerifyKYC from '../pages/admin/VerifyKYC';
 import ManageTechnicians from '../pages/admin/ManageTechnicians';
 import ManageServices from '../pages/admin/ManageServices';
+import ManageCustomers from '../pages/admin/ManageCustomers';
 
 // Admin sidebar nav items
 const adminNavItems: NavItem[] = [
@@ -57,6 +58,11 @@ const adminNavItems: NavItem[] = [
     label: 'Manage Services',
     path: '/admin/services',
     icon: <Layers size={20} />,
+  },
+  {
+    label: 'Manage Customers',
+    path: '/admin/customers',
+    icon: <UserCheck size={20} />,
   },
   {
     label: 'Profile',
@@ -101,6 +107,7 @@ const AppRoutes: React.FC = () => {
         <Route path="technicians/verify-kyc" element={<VerifyKYC />} />
         <Route path="technicians/manage" element={<ManageTechnicians />} />
         <Route path="services" element={<ManageServices />} />
+        <Route path="customers" element={<ManageCustomers />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 

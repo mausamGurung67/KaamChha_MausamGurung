@@ -20,6 +20,7 @@ export const getAllServices = async (req: Request, res: Response): Promise<void>
     search: req.query.search as string | undefined,
     minPrice: req.query.minPrice ? parseFloat(req.query.minPrice as string) : undefined,
     maxPrice: req.query.maxPrice ? parseFloat(req.query.maxPrice as string) : undefined,
+    isActive: req.query.isActive as string | undefined,
     page: req.query.page ? parseInt(req.query.page as string) : undefined,
     limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
   };

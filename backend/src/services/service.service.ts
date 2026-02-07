@@ -8,6 +8,8 @@ export interface CreateServiceData {
   price: number;
   duration: number;
   image?: string;
+  images?: string[];
+  inclusions?: string[];
   serviceRadius?: number;
   createdBy: string;
 }
@@ -19,6 +21,8 @@ export interface UpdateServiceData {
   price?: number;
   duration?: number;
   image?: string;
+  images?: string[];
+  inclusions?: string[];
   isActive?: boolean;
   serviceRadius?: number;
 }
@@ -28,6 +32,7 @@ export interface ServiceFilters {
   search?: string;
   minPrice?: number;
   maxPrice?: number;
+  isActive?: string; // 'true', 'false', or 'all'
   page?: number;
   limit?: number;
 }
@@ -74,9 +79,16 @@ export const getAllServices = async (filters: ServiceFilters = {}): Promise<{
   const limit = filters.limit || 10;
   const skip = (page - 1) * limit;
 
-  const where: any = {
-    isActive: true,
-  };
+  const where: any = {};
+
+  // Default to active-only unless 'all' is passed
+  if (filters.isActive === 'all') {
+    // no filter
+  } else if (filters.isActive === 'false') {
+    where.isActive = false;
+  } else {
+    where.isActive = true;
+  }
 
   if (filters.categoryId) {
     where.categoryId = filters.categoryId;
