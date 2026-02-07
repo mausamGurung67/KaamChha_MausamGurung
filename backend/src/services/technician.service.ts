@@ -29,15 +29,17 @@ export const getTechnicianDashboard = async (technicianId: string): Promise<any>
     prisma.order.count({
       where: {
         technicianId,
-        status: OrderStatus.COMPLETED,
-        paymentStatus: PaymentStatus.PAID,
+        status: {
+          in: [OrderStatus.COMPLETED_BY_TECHNICIAN, OrderStatus.COMPLETED],
+        },
       },
     }),
     prisma.order.aggregate({
       where: {
         technicianId,
-        status: OrderStatus.COMPLETED,
-        paymentStatus: PaymentStatus.PAID,
+        status: {
+          in: [OrderStatus.COMPLETED_BY_TECHNICIAN, OrderStatus.COMPLETED],
+        },
       },
       _sum: {
         technicianAmount: true,

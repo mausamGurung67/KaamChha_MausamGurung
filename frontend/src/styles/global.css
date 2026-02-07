@@ -76,6 +76,7 @@ a:hover {
 }
 
 .custom-input {
+  width: 100%;
   padding: 12px 16px;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
@@ -83,6 +84,7 @@ a:hover {
   font-family: var(--font-family);
   outline: none;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .custom-input:focus {

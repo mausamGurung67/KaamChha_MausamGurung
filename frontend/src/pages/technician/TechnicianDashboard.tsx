@@ -207,17 +207,17 @@ const TechnicianDashboard: React.FC = () => {
       </div>
 
       {/* Earnings card */}
-      <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-xl p-6 text-white shadow-md">
+      <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-orange-100 text-sm font-medium">Total Earnings</p>
-            <h2 className="text-3xl font-bold mt-1">NPR {stats.totalEarnings.toLocaleString()}</h2>
-            <p className="text-orange-200 text-sm mt-2">
+            <p className="text-orange-500 text-sm font-medium">Total Earnings</p>
+            <h2 className="text-3xl font-bold mt-1 text-orange-700">NPR {stats.totalEarnings.toLocaleString()}</h2>
+            <p className="text-orange-400 text-sm mt-2">
               From {stats.completedOrders} completed {stats.completedOrders === 1 ? 'job' : 'jobs'}
             </p>
           </div>
-          <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-            <IndianRupee size={28} />
+          <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
+            <IndianRupee size={28} className="text-orange-500" />
           </div>
         </div>
       </div>
