@@ -1,7 +1,9 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import 'dotenv/config';
 
-const prisma = new PrismaClient();
+// Use the same database config as the app
+import prisma from '../src/config/database';
 
 async function main() {
   console.log('🌱 Starting database seeding...');
@@ -47,6 +49,32 @@ async function main() {
   console.log('\n📧 Email: admin@example.com');
   console.log('🔑 Password: Admin@123');
   console.log('\n⚠️  Please change the password after first login!');
+
+  // ── Seed Categories ────────────────────────────────────
+  console.log('\n🌱 Seeding categories...');
+
+  const categoryData = [
+    { name: 'Plumbing', description: 'Pipe repair, leak fixing, tap installation, and all plumbing solutions' },
+    { name: 'Electrical', description: 'Wiring, switch repair, fan installation, and electrical troubleshooting' },
+    { name: 'Cleaning', description: 'Home deep cleaning, kitchen cleaning, bathroom cleaning, and sanitization' },
+    { name: 'Painting', description: 'Wall painting, texture painting, waterproofing, and color consultation' },
+    { name: 'Carpentry', description: 'Furniture repair, door fitting, cabinet making, and woodwork' },
+    { name: 'Appliance Repair', description: 'AC servicing, washing machine repair, refrigerator repair, and more' },
+    { name: 'Gardening', description: 'Lawn care, plant trimming, garden setup, and landscaping services' },
+    { name: 'Pest Control', description: 'Termite treatment, cockroach control, mosquito control, and fumigation' },
+    { name: 'Home Shifting', description: 'Packing, loading, transport, unloading, and home relocation services' },
+    { name: 'CCTV & Security', description: 'CCTV installation, security alarm setup, intercom fitting, and maintenance' },
+  ];
+
+  for (const cat of categoryData) {
+    await prisma.category.upsert({
+      where: { name: cat.name },
+      update: {},
+      create: cat,
+    });
+  }
+
+  console.log(`✅ ${categoryData.length} categories seeded`);
 }
 
 main()

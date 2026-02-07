@@ -243,7 +243,8 @@ const ManageServices: React.FC = () => {
         <select
           value={catFilter}
           onChange={(e) => setCatFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-orange-400"
+          className="px-3 py-2.5 rounded-lg border border-gray-200 text-sm bg-white focus:ring-2 focus:ring-orange-400 [&>option:checked]:bg-orange-500 [&>option:checked]:text-white"
+          style={{ accentColor: '#f97316' }}
         >
           <option value="">All Categories</option>
           {categories.map((c) => (
@@ -430,7 +431,8 @@ const ManageServices: React.FC = () => {
                   required
                   value={formData.categoryId}
                   onChange={(e) => setFormData((p) => ({ ...p, categoryId: e.target.value }))}
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white"
+                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent bg-white [&>option:checked]:bg-orange-500 [&>option:checked]:text-white"
+                  style={{ accentColor: '#f97316' }}
                 >
                   <option value="">Select category</option>
                   {categories.map((c) => (
@@ -503,27 +505,6 @@ const ManageServices: React.FC = () => {
                     className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
                   />
                 </div>
-              </div>
-
-              {/* Service Radius */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Service Radius (km)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={formData.serviceRadius ?? ''}
-                  onChange={(e) =>
-                    setFormData((p) => ({
-                      ...p,
-                      serviceRadius: e.target.value ? parseFloat(e.target.value) : undefined,
-                    }))
-                  }
-                  placeholder="5"
-                  className="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
-                />
               </div>
 
               {/* Image */}
