@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Clock,
@@ -32,7 +32,26 @@ const ServiceDetails: React.FC = () => {
   const [selectedPosition, setSelectedPosition] = useState<LatLng | null>(null);
   const [serviceAddress, setServiceAddress] = useState('');
   const [selectedDateIdx, setSelectedDateIdx] = useState(0);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedTime, setSelectedTime] = useState('');
   const [showMap, setShowMap] = useState(false);
+
+  const dateInputRef = useRef<HTMLInputElement>(null);
+  const timeInputRef = useRef<HTMLInputElement>(null);
+
+  // Generate next 7 days
+  const next7Days = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+
+  // Time slots
+  const timeSlots = [
+    '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+    '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM',
+    '04:00 PM', '05:00 PM', '06:00 PM',
+  ];
 
   const handleLocationSelect = (latlng: LatLng, address: string) => {
     setSelectedPosition(latlng);
@@ -45,8 +64,7 @@ const ServiceDetails: React.FC = () => {
       return;
     }
     // TODO: proceed with actual booking flow
-    // Available data: selectedPosition (lat/lng), serviceAddress, selectedDateIdx
-    console.log('Booking with:', { selectedPosition, serviceAddress, selectedDateIdx });
+    console.log('Booking with:', { selectedPosition, serviceAddress, selectedDate, selectedTime });
   };
 
   useEffect(() => {
@@ -322,22 +340,46 @@ const ServiceDetails: React.FC = () => {
                         <p className="text-sm font-semibold text-gray-900">Select Date</p>
                         <p className="text-xs text-gray-400">Choose your preferred date</p>
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <button
+                        type="button"
+                        onClick={() => dateInputRef.current?.showPicker()}
+                        className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 font-medium transition cursor-pointer"
+                      >
                         <Calendar size={13} />
-                        <span>{new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                      </div>
+                        <span>{selectedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                      </button>
+                      {/* Hidden native date picker */}
+                      <input
+                        ref={dateInputRef}
+                        type="date"
+                        className="absolute opacity-0 w-0 h-0 pointer-events-none"
+                        min={new Date().toISOString().split('T')[0]}
+                        value={selectedDate.toISOString().split('T')[0]}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const picked = new Date(e.target.value + 'T00:00:00');
+                            setSelectedDate(picked);
+                            // Check if picked date is within the 7-day quick row
+                            const idx = next7Days.findIndex(
+                              (d) => d.toDateString() === picked.toDateString()
+                            );
+                            setSelectedDateIdx(idx >= 0 ? idx : -1);
+                          }
+                        }}
+                      />
                     </div>
                     {/* Date selector row */}
                     <div className="flex gap-1.5">
-                      {Array.from({ length: 7 }, (_, i) => {
-                        const date = new Date();
-                        date.setDate(date.getDate() + i);
+                      {next7Days.map((date, i) => {
                         const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                         const dayNum = date.getDate();
                         return (
                           <button
                             key={i}
-                            onClick={() => setSelectedDateIdx(i)}
+                            onClick={() => {
+                              setSelectedDateIdx(i);
+                              setSelectedDate(date);
+                            }}
                             className={`flex-1 flex flex-col items-center py-2 rounded-lg border text-xs transition ${
                               selectedDateIdx === i
                                 ? 'border-orange-400 bg-orange-50 text-orange-600 font-semibold'
@@ -354,16 +396,64 @@ const ServiceDetails: React.FC = () => {
 
                   {/* Select Time */}
                   <div className="mb-6">
-                    <p className="text-sm font-semibold text-gray-900 mb-1">Select Time</p>
-                    <p className="text-xs text-gray-400 mb-2">Choose your preferred time</p>
-                    <div className="relative">
+                    <div className="flex items-center justify-between mb-1">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Select Time</p>
+                        <p className="text-xs text-gray-400">Choose your preferred time</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => timeInputRef.current?.showPicker()}
+                        className="flex items-center gap-1 text-xs text-orange-500 hover:text-orange-600 font-medium transition cursor-pointer"
+                        title="Pick custom time"
+                      >
+                        <Clock size={13} />
+                        <span>{selectedTime || 'Custom'}</span>
+                      </button>
+                      {/* Hidden native time picker */}
                       <input
-                        type="text"
-                        placeholder="8:00 AM - 10:00 AM"
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent pr-10"
-                        readOnly
+                        ref={timeInputRef}
+                        type="time"
+                        className="absolute opacity-0 w-0 h-0 pointer-events-none"
+                        value={
+                          selectedTime
+                            ? (() => {
+                                // Convert "02:00 PM" → "14:00" for native input
+                                const [time, meridiem] = selectedTime.split(' ');
+                                let [h, m] = time.split(':').map(Number);
+                                if (meridiem === 'PM' && h !== 12) h += 12;
+                                if (meridiem === 'AM' && h === 12) h = 0;
+                                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+                              })()
+                            : ''
+                        }
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const [h, m] = e.target.value.split(':').map(Number);
+                            const meridiem = h >= 12 ? 'PM' : 'AM';
+                            const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+                            const formatted = `${String(h12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${meridiem}`;
+                            setSelectedTime(formatted);
+                          }
+                        }}
                       />
-                      <Clock size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-400" />
+                    </div>
+                    {/* Time slot grid */}
+                    <div className="grid grid-cols-3 gap-1.5 mt-2">
+                      {timeSlots.map((slot) => (
+                        <button
+                          key={slot}
+                          type="button"
+                          onClick={() => setSelectedTime(slot)}
+                          className={`py-2 rounded-lg border text-xs transition ${
+                            selectedTime === slot
+                              ? 'border-orange-400 bg-orange-50 text-orange-600 font-semibold'
+                              : 'border-gray-200 text-gray-500 hover:border-orange-300'
+                          }`}
+                        >
+                          {slot}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
