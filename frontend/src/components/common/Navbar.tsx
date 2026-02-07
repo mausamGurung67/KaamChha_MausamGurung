@@ -117,7 +117,7 @@ const Navbar: React.FC = () => {
                   {getInitials(user.name, user.email)}
                 </div>
                 <span className="hidden sm:inline text-sm font-medium text-gray-700">
-                  {user.name || user.email}
+                  {user.name || 'User'}
                 </span>
                 <ChevronDown 
                   size={16} 

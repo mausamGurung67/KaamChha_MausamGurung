@@ -14,14 +14,26 @@ import {
   Calendar,
 } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
+import LoginPromptModal from '../../components/common/LoginPromptModal';
+import { useAuth } from '../../hooks/useAuth';
 import { getServiceById, type ServiceItem } from '../../services/service.service';
 
 const ServiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const [service, setService] = useState<ServiceItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [currentImage, setCurrentImage] = useState(0);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+
+  const handleBookService = () => {
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
+    // TODO: proceed with actual booking flow
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -302,7 +314,10 @@ const ServiceDetails: React.FC = () => {
                   </div>
 
                   {/* Book Service Button */}
-                  <button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm shadow-orange-500/20 hover:shadow-md">
+                  <button
+                    onClick={handleBookService}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm shadow-orange-500/20 hover:shadow-md"
+                  >
                     Book Service
                   </button>
                 </div>
@@ -325,8 +340,14 @@ const ServiceDetails: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* Login Prompt Modal */}
+      <LoginPromptModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </div>
   );
 };
 
 export default ServiceDetails;
+

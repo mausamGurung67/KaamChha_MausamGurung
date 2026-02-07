@@ -4,6 +4,7 @@ import AuthLayout from '../layouts/AuthLayout';
 import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
+import RoleRedirect from '../components/common/RoleRedirect';
 import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
@@ -68,14 +69,14 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Home page as the landing page */}
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<RoleRedirect><Home /></RoleRedirect>} />
 
       {/* Public service pages */}
-      <Route path="/services" element={<Services />} />
-      <Route path="/services/:id" element={<ServiceDetails />} />
+      <Route path="/services" element={<RoleRedirect><Services /></RoleRedirect>} />
+      <Route path="/services/:id" element={<RoleRedirect><ServiceDetails /></RoleRedirect>} />
 
       {/* About Us page */}
-      <Route path="/about" element={<AboutUs />} />
+      <Route path="/about" element={<RoleRedirect><AboutUs /></RoleRedirect>} />
 
       {/* Profile page - accessible to all logged-in users */}
       <Route 

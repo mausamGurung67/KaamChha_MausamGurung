@@ -29,9 +29,11 @@ const Login: React.FC = () => {
     if (!isLoading && user) {
       // Redirect based on user role
       if (user.role === 'ADMIN') {
-        navigate('/admin/dashboard');
+        navigate('/admin/dashboard', { replace: true });
+      } else if (user.role === 'TECHNICIAN') {
+        navigate('/technician/dashboard', { replace: true });
       } else {
-        navigate('/');
+        navigate('/', { replace: true });
       }
     }
   }, [user, isLoading, navigate]);

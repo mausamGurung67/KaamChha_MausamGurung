@@ -1,16 +1,21 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { User, Mail, Phone, Shield, CheckCircle, XCircle } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 
 const Profile: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
+
+  // Don't show Navbar when inside dashboard layouts (admin/technician)
+  const isInsideDashboard = location.pathname.startsWith('/admin') || location.pathname.startsWith('/technician');
 
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Navbar />
-        <div className="pt-24 px-6">
+        {!isInsideDashboard && <Navbar />}
+        <div className={`${isInsideDashboard ? 'pt-6' : 'pt-24'} px-6`}>
           <div className="max-w-4xl mx-auto text-center py-20">
             <p className="text-gray-600">Please log in to view your profile.</p>
           </div>
@@ -20,10 +25,10 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    <div className={isInsideDashboard ? '' : 'min-h-screen bg-gray-50'}>
+      {!isInsideDashboard && <Navbar />}
       
-      <div className="pt-24 px-6 pb-12">
+      <div className={`${isInsideDashboard ? 'pt-2' : 'pt-24'} px-6 pb-12`}>
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">
