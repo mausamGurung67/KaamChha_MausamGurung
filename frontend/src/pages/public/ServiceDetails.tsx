@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Clock,
-  MapPin,
   ArrowLeft,
   Loader2,
   Layers,
@@ -12,9 +11,11 @@ import {
   CheckCircle,
   Home,
   Calendar,
+  MapPin,
 } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 import LoginPromptModal from '../../components/common/LoginPromptModal';
+import MapPicker, { type LatLng } from '../../components/common/MapPicker';
 import { useAuth } from '../../hooks/useAuth';
 import { getServiceById, type ServiceItem } from '../../services/service.service';
 
@@ -27,12 +28,25 @@ const ServiceDetails: React.FC = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const [showLoginModal, setShowLoginModal] = useState(false);
 
+  // ── Booking form state ──
+  const [selectedPosition, setSelectedPosition] = useState<LatLng | null>(null);
+  const [serviceAddress, setServiceAddress] = useState('');
+  const [selectedDateIdx, setSelectedDateIdx] = useState(0);
+  const [showMap, setShowMap] = useState(false);
+
+  const handleLocationSelect = (latlng: LatLng, address: string) => {
+    setSelectedPosition(latlng);
+    setServiceAddress(address);
+  };
+
   const handleBookService = () => {
     if (!user) {
       setShowLoginModal(true);
       return;
     }
     // TODO: proceed with actual booking flow
+    // Available data: selectedPosition (lat/lng), serviceAddress, selectedDateIdx
+    console.log('Booking with:', { selectedPosition, serviceAddress, selectedDateIdx });
   };
 
   useEffect(() => {
@@ -255,16 +269,50 @@ const ServiceDetails: React.FC = () => {
 
                   {/* Select Location */}
                   <div className="mb-5">
-                    <p className="text-sm font-semibold text-gray-900 mb-1">Select Location</p>
-                    <p className="text-xs text-gray-400 mb-2">Enter your location where we should provide the service</p>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Enter your location/address"
-                        className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent pr-10"
-                      />
-                      <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500" />
+                    <div className="flex items-center justify-between mb-1">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">Select Location</p>
+                        <p className="text-xs text-gray-400">Click on map or search for your address</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowMap(!showMap)}
+                        className="text-xs text-orange-500 hover:text-orange-600 font-medium flex items-center gap-1 transition"
+                      >
+                        <MapPin size={13} />
+                        {showMap ? 'Hide Map' : 'Show Map'}
+                      </button>
                     </div>
+
+                    {showMap && (
+                      <div className="mt-2">
+                        <MapPicker
+                          position={selectedPosition}
+                          onLocationSelect={handleLocationSelect}
+                          height="220px"
+                        />
+                      </div>
+                    )}
+
+                    {!showMap && (
+                      <div className="relative mt-2">
+                        <input
+                          type="text"
+                          value={serviceAddress}
+                          onChange={(e) => setServiceAddress(e.target.value)}
+                          placeholder="Enter your location/address"
+                          className="w-full px-4 py-3 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent pr-10"
+                        />
+                        <MapPin size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-orange-500" />
+                      </div>
+                    )}
+
+                    {selectedPosition && (
+                      <p className="text-[11px] text-green-600 mt-1.5 flex items-center gap-1">
+                        <CheckCircle size={11} />
+                        Location selected
+                      </p>
+                    )}
                   </div>
 
                   {/* Select Date */}
@@ -289,8 +337,9 @@ const ServiceDetails: React.FC = () => {
                         return (
                           <button
                             key={i}
+                            onClick={() => setSelectedDateIdx(i)}
                             className={`flex-1 flex flex-col items-center py-2 rounded-lg border text-xs transition ${
-                              i === 0
+                              selectedDateIdx === i
                                 ? 'border-orange-400 bg-orange-50 text-orange-600 font-semibold'
                                 : 'border-gray-200 text-gray-500 hover:border-orange-300'
                             }`}
