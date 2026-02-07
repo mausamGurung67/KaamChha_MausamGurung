@@ -1,14 +1,27 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/images/logo.png';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, logout } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
+
+  const navLinkClass = (path: string) =>
+    `transition font-medium ${
+      isActive(path)
+        ? 'text-orange-500 font-semibold'
+        : 'text-gray-700 hover:text-orange-500'
+    }`;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -59,10 +72,23 @@ const Navbar: React.FC = () => {
 
         {/* Center: Nav Links */}
         <div className="hidden md:flex items-center space-x-10 text-sm font-medium">
-          <Link to="/" className="text-orange-500 hover:text-orange-600 transition font-semibold">Home</Link>
-          <Link to="/services" className="text-gray-700 hover:text-orange-500 transition">Services</Link>
-          <Link to="/how-it-works" className="text-gray-700 hover:text-orange-500 transition">How It Works</Link>
-          <Link to="/about" className="text-gray-700 hover:text-orange-500 transition">About Us</Link>
+          <Link to="/" className={navLinkClass('/')}>Home</Link>
+          <Link to="/services" className={navLinkClass('/services')}>Services</Link>
+          <Link
+            to="/#how-it-works"
+            onClick={(e) => {
+              e.preventDefault();
+              if (location.pathname === '/') {
+                document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+              } else {
+                navigate('/', { state: { scrollTo: 'how-it-works' } });
+              }
+            }}
+            className={navLinkClass('/how-it-works')}
+          >
+            How It Works
+          </Link>
+          <Link to="/about" className={navLinkClass('/about')}>About Us</Link>
         </div>
 
         {/* Right: Auth Buttons or Profile */}

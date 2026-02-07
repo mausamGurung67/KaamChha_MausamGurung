@@ -20,6 +20,7 @@ import Services from '../pages/public/Services';
 import ServiceDetails from '../pages/public/ServiceDetails';
 import Profile from '../pages/profile/Profile';
 import Unauthorized from '../pages/public/Unauthorized';
+import AboutUs from '../pages/public/AboutUs';
 import TechnicianDashboard from '../pages/technician/TechnicianDashboard';
 
 // Admin pages
@@ -72,6 +73,9 @@ const AppRoutes: React.FC = () => {
       {/* Public service pages */}
       <Route path="/services" element={<Services />} />
       <Route path="/services/:id" element={<ServiceDetails />} />
+
+      {/* About Us page */}
+      <Route path="/about" element={<AboutUs />} />
 
       {/* Profile page - accessible to all logged-in users */}
       <Route 

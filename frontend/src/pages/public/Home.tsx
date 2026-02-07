@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { ChevronDown, ChevronUp, ArrowRight, Star, ChevronLeft, ChevronRight, Phone, Mail, MapPin, Facebook, Twitter } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 
@@ -16,6 +16,19 @@ import footerLogo from '../../assets/images/footerillus.png';
 const Home: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const location = useLocation();
+
+  // Scroll to section when navigated from another page
+  useEffect(() => {
+    const state = location.state as { scrollTo?: string } | null;
+    if (state?.scrollTo) {
+      setTimeout(() => {
+        document.getElementById(state.scrollTo!)?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+      // Clear the state so it doesn't re-scroll on re-renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
@@ -215,7 +228,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* ================= HOW IT WORKS ================= */}
-      <section className="py-24 bg-white px-6">
+      <section id="how-it-works" className="py-24 bg-white px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
             
