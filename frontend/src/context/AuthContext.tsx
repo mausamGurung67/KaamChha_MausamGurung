@@ -1,6 +1,7 @@
-import React, { createContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import * as authService from '../services/auth.service';
+import { resetAuthInterceptor } from '../services/api';
 import type { 
   User, 
   AuthContextType, 
@@ -8,7 +9,8 @@ import type {
   RegisterRequest,
   OTPType 
 } from '../types/auth.types';
-import { STORAGE_KEYS } from '../utils/constants';
+import { API_ENDPOINTS, STORAGE_KEYS } from '../utils/constants';
+import api from '../services/api';
 
 // Create the context with undefined as default
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,18 +23,46 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const sessionChecked = useRef(false);
 
-  // Load user from localStorage on mount
+  // On mount: if localStorage has a user, validate the session with the server.
+  // If the session is invalid (refresh fails), clear the user immediately
+  // instead of letting ProtectedRoute render → 401 → refresh loop.
   useEffect(() => {
+    if (sessionChecked.current) return;
+    sessionChecked.current = true;
+
     const storedUser = localStorage.getItem(STORAGE_KEYS.USER);
-    if (storedUser) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        localStorage.removeItem(STORAGE_KEYS.USER);
-      }
+    if (!storedUser) {
+      setIsLoading(false);
+      return;
     }
-    setIsLoading(false);
+
+    let parsed: User | null = null;
+    try {
+      parsed = JSON.parse(storedUser);
+    } catch {
+      localStorage.removeItem(STORAGE_KEYS.USER);
+      setIsLoading(false);
+      return;
+    }
+
+    // Attempt to refresh the access token to verify session is still alive.
+    // This is a single request — if it fails, we know the session is dead.
+    api.post(API_ENDPOINTS.AUTH.REFRESH)
+      .then(() => {
+        // Session is valid — set the user
+        setUser(parsed);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        // Session is dead — clean up everything
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        setUser(null);
+        setIsLoading(false);
+      });
   }, []);
 
   // Save user to localStorage whenever it changes
@@ -54,6 +84,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.login(data);
       if (response.success && response.data) {
+        // Reset the interceptor's logged-out flag so refresh works again
+        resetAuthInterceptor();
         setUser(response.data.user);
         // Store token if provided in response
         const tokenData = response.data as unknown as { accessToken?: string };
@@ -76,6 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.register(data);
       if (response.success && response.data) {
+        resetAuthInterceptor();
         setUser(response.data.user);
         // Store token if provided in response
         const tokenData = response.data as unknown as { accessToken?: string };
@@ -175,6 +208,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.googleLogin({ token });
       if (response.success && response.data) {
+        resetAuthInterceptor();
         setUser(response.data.user);
       }
     } catch (err) {
@@ -192,6 +226,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authService.registerTechnician(data);
       if (response.success && response.data) {
+        resetAuthInterceptor();
         setUser(response.data.user);
         // Store email for OTP verification page
         const email = data.email;

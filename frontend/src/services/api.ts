@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { API_BASE_URL, API_ENDPOINTS } from '../utils/constants';
+import { API_BASE_URL, API_ENDPOINTS, STORAGE_KEYS } from '../utils/constants';
 import type { ApiResponse } from '../types/auth.types';
 
 // Create axios instance with default config
@@ -14,6 +14,8 @@ const api = axios.create({
 
 // Flag to prevent multiple refresh attempts
 let isRefreshing = false;
+// Global flag: once refresh fails, stop all retries until next page load / login
+let isLoggedOut = false;
 let failedQueue: Array<{
   resolve: (value?: unknown) => void;
   reject: (reason?: unknown) => void;
@@ -27,6 +29,16 @@ const processQueue = (error: Error | null) => {
       prom.resolve();
     }
   });
+  failedQueue = [];
+};
+
+/**
+ * Call this after a successful login to reset the logged-out flag
+ * so the interceptor can attempt token refreshes again.
+ */
+export const resetAuthInterceptor = () => {
+  isLoggedOut = false;
+  isRefreshing = false;
   failedQueue = [];
 };
 
@@ -51,8 +63,18 @@ api.interceptors.response.use(
   async (error: AxiosError<ApiResponse>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
+    // If we already know we're logged out, don't try to refresh — just reject
+    if (isLoggedOut) {
+      return Promise.reject(error);
+    }
+
     // If error is 401 and we haven't tried to refresh yet
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Don't try to refresh the refresh endpoint itself
+      if (originalRequest.url?.includes('/auth/refresh') || originalRequest.url?.includes('/auth/login')) {
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
         // If already refreshing, queue this request
         return new Promise((resolve, reject) => {
@@ -72,9 +94,16 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as Error);
-        // Clear user data and redirect to login
-        localStorage.removeItem('kaamchha_user');
-        window.location.href = '/auth/login';
+        // Mark as logged out to prevent further refresh attempts
+        isLoggedOut = true;
+        // Clear all stored auth data
+        localStorage.removeItem(STORAGE_KEYS.USER);
+        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+        // Redirect to login (only once, via replace to avoid history spam)
+        if (window.location.pathname !== '/auth/login') {
+          window.location.replace('/auth/login');
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
