@@ -1,9 +1,23 @@
 import { Socket } from 'socket.io';
 import { ExtendedError } from 'socket.io/dist/namespace';
-import cookie from 'cookie';
 import { verifyAccessToken } from '../utils/jwt.util';
 import prisma from '../config/database';
 import { AuthenticatedSocket } from '../types/socket';
+
+/**
+ * Minimal cookie parser — avoids ESM/CJS issues with the `cookie` package.
+ */
+const parseCookies = (cookieHeader: string): Record<string, string> => {
+  const cookies: Record<string, string> = {};
+  cookieHeader.split(';').forEach((pair) => {
+    const idx = pair.indexOf('=');
+    if (idx < 1) return;
+    const key = pair.substring(0, idx).trim();
+    const val = pair.substring(idx + 1).trim();
+    cookies[key] = decodeURIComponent(val);
+  });
+  return cookies;
+};
 
 /**
  * Socket.IO authentication middleware.
@@ -23,9 +37,12 @@ export const socketAuthMiddleware = async (
       socket.handshake.auth?.token as string | undefined;
 
     if (!token) {
-      const cookies = socket.handshake.headers.cookie;
-      if (cookies) {
-        const parsed = cookie.parse(cookies);
+      const cookieHeader =
+        socket.handshake.headers.cookie ||
+        (socket.request as { headers?: { cookie?: string } })?.headers?.cookie;
+
+      if (cookieHeader) {
+        const parsed = parseCookies(cookieHeader);
         token = parsed.accessToken;
       }
     }

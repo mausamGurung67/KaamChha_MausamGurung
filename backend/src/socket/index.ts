@@ -18,8 +18,10 @@ export const initSocketIO = (httpServer: HttpServer): Server => {
       credentials: true,
       methods: ['GET', 'POST'],
     },
-    // Prefer WebSocket, fall back to polling
-    transports: ['websocket', 'polling'],
+    // Allow both transports — client starts with polling (sends cookies),
+    // then upgrades to WebSocket for speed.
+    transports: ['polling', 'websocket'],
+    allowEIO3: true,
   };
 
   io = new Server(httpServer, opts);
