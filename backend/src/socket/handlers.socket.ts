@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../types/socket';
+import { registerBookingHandlers } from './booking.socket';
 
 /**
  * Register event handlers on each authenticated socket connection.
@@ -26,4 +27,7 @@ export const registerSocketHandlers = (io: Server, socket: AuthenticatedSocket):
       socket.emit('pong');
     }
   });
+
+  // ── Domain-specific handlers ──
+  registerBookingHandlers(io, socket);
 };
