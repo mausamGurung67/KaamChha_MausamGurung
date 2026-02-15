@@ -99,4 +99,99 @@ export const registerBookingHandlers = (io: Server, socket: AuthenticatedSocket)
       role,
     });
   });
+
+  // ── send_message ──────────────────────────────────────────────────
+  socket.on(
+    'send_message',
+    async (
+      data: { bookingId: string; message: string },
+      callback?: (res: { success: boolean; message?: string; data?: Record<string, unknown> }) => void,
+    ) => {
+      const respond = (success: boolean, message: string, payload?: Record<string, unknown>) => {
+        if (typeof callback === 'function') {
+          callback({ success, message, data: payload });
+        } else if (!success) {
+          socket.emit('booking:error', { bookingId: data?.bookingId, message });
+        }
+      };
+
+      try {
+        // ── Validate payload ──
+        const { bookingId, message: content } = data || {};
+
+        if (!bookingId || typeof bookingId !== 'string') {
+          return respond(false, 'bookingId is required');
+        }
+        if (!content || typeof content !== 'string' || content.trim().length === 0) {
+          return respond(false, 'message content is required');
+        }
+
+        // ── Fetch order & verify membership ──
+        const order = await prisma.order.findUnique({
+          where: { id: bookingId },
+          select: {
+            id: true,
+            status: true,
+            customerId: true,
+            technicianId: true,
+          },
+        });
+
+        if (!order) {
+          return respond(false, 'Booking not found');
+        }
+
+        const isCustomer = order.customerId === userId;
+        const isTechnician = order.technicianId === userId;
+        const isAdmin = role === UserRole.ADMIN;
+
+        if (!isCustomer && !isTechnician && !isAdmin) {
+          return respond(false, 'You are not authorized to send messages in this booking');
+        }
+
+        // ── Determine the receiver ──
+        // Customer ↔ Technician. Admins send to the customer by default.
+        let receiverId: string;
+        if (isCustomer) {
+          receiverId = order.technicianId ?? order.customerId;
+        } else if (isTechnician) {
+          receiverId = order.customerId;
+        } else {
+          // Admin → customer (fallback)
+          receiverId = order.customerId;
+        }
+
+        // ── Persist to database ──
+        const chat = await prisma.chat.create({
+          data: {
+            orderId: bookingId,
+            senderId: userId,
+            receiverId,
+            message: content.trim(),
+          },
+        });
+
+        // ── Build broadcast payload ──
+        const messagePayload = {
+          id: chat.id,
+          bookingId,
+          senderId: userId,
+          senderRole: role,
+          content: chat.message,
+          timestamp: chat.createdAt.toISOString(),
+        };
+
+        // ── Broadcast to the booking room (including sender) ──
+        const room = `booking_${bookingId}`;
+        io.to(room).emit('new_message', messagePayload);
+
+        console.log(`📨 [Socket] Message in ${room} from ${userId} — chatId=${chat.id}`);
+
+        respond(true, 'Message sent', messagePayload);
+      } catch (error) {
+        console.error('[Socket] send_message error', error);
+        respond(false, 'Internal server error while sending message');
+      }
+    },
+  );
 };
