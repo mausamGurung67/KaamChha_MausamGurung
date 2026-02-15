@@ -787,3 +787,53 @@ export const confirmCompletion = async (orderId: string, customerId: string): Pr
 
   return updatedOrder;
 };
+
+export const getOrderChats = async (
+  orderId: string,
+  userId: string,
+  userRole: UserRole,
+): Promise<any[]> => {
+  // Verify user has access to this order
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { customerId: true, technicianId: true },
+  });
+
+  if (!order) {
+    throw new Error('Order not found');
+  }
+
+  const isCustomer = order.customerId === userId;
+  const isTechnician = order.technicianId === userId;
+  const isAdmin = userRole === UserRole.ADMIN;
+
+  if (!isCustomer && !isTechnician && !isAdmin) {
+    throw new Error('Not authorized to view this chat');
+  }
+
+  const chats = await prisma.chat.findMany({
+    where: { orderId },
+    orderBy: { createdAt: 'asc' },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          email: true,
+          role: true,
+          profile: { select: { name: true, avatar: true } },
+        },
+      },
+    },
+  });
+
+  return chats.map((c) => ({
+    id: c.id,
+    orderId: c.orderId,
+    senderId: c.senderId,
+    senderRole: c.sender.role,
+    senderName: c.sender.profile?.name || c.sender.email,
+    message: c.message,
+    isRead: c.isRead,
+    createdAt: c.createdAt,
+  }));
+};

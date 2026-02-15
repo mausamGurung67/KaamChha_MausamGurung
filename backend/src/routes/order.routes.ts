@@ -31,6 +31,8 @@ router.get('/', validate(listOrdersSchema), orderController.listOrders);
 
 router.get('/:id', validate(getOrderSchema), orderController.getOrderById);
 
+router.get('/:id/chats', validate(getOrderSchema), orderController.getOrderChats);
+
 router.patch(
   '/:id/status',
   validate(updateOrderStatusSchema),

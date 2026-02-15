@@ -151,3 +151,17 @@ export const confirmCompletion = async (req: Request, res: Response): Promise<vo
     data: { order },
   });
 };
+
+export const getOrderChats = async (req: Request, res: Response): Promise<void> => {
+  const chats = await orderService.getOrderChats(
+    req.params.id,
+    req.userId!,
+    req.userRole!,
+  );
+
+  res.json({
+    success: true,
+    message: 'Chat history fetched',
+    data: { chats },
+  });
+};
