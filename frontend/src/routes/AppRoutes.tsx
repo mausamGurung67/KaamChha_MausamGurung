@@ -5,7 +5,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import RoleRedirect from '../components/common/RoleRedirect';
-import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList, MessageSquare } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -33,6 +33,7 @@ import ManageCustomers from '../pages/admin/ManageCustomers';
 import AdminBookings from '../pages/admin/AdminBookings';
 import MyBookings from '../pages/customer/MyBookings';
 import TechnicianBookings from '../pages/technician/TechnicianBookings';
+import ChatPage from '../pages/chat/ChatPage';
 
 // Admin sidebar nav items
 const adminNavItems: NavItem[] = [
@@ -71,6 +72,11 @@ const adminNavItems: NavItem[] = [
     label: 'Manage Customers',
     path: '/admin/customers',
     icon: <UserCheck size={20} />,
+  },
+  {
+    label: 'Chat',
+    path: '/admin/chat',
+    icon: <MessageSquare size={20} />,
   },
   {
     label: 'Profile',
@@ -127,6 +133,7 @@ const AppRoutes: React.FC = () => {
         <Route path="services" element={<ManageServices />} />
         <Route path="bookings" element={<AdminBookings />} />
         <Route path="customers" element={<ManageCustomers />} />
+        <Route path="chat" element={<ChatPage />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
@@ -141,6 +148,7 @@ const AppRoutes: React.FC = () => {
       >
         <Route path="dashboard" element={<TechnicianDashboard />} />
         <Route path="requests" element={<TechnicianBookings />} />
+        <Route path="chat" element={<ChatPage />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 
