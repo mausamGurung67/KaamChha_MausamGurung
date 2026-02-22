@@ -35,6 +35,7 @@ import MyBookings from '../pages/customer/MyBookings';
 import TechnicianBookings from '../pages/technician/TechnicianBookings';
 import ChatPage from '../pages/chat/ChatPage';
 import KhaltiCallback from '../pages/payment/KhaltiCallback';
+import EsewaCallback from '../pages/payment/EsewaCallback';
 
 // Admin sidebar nav items
 const adminNavItems: NavItem[] = [
@@ -125,6 +126,16 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['CUSTOMER']}>
             <KhaltiCallback />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* eSewa payment callback */}
+      <Route
+        path="/payment/esewa/callback"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <EsewaCallback />
           </ProtectedRoute>
         }
       />

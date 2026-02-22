@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, CreditCard, Loader2, Shield, ExternalLink } from 'lucide-react';
-import { initiateKhaltiPayment } from '../../services/payment.service';
+import { initiateKhaltiPayment, initiateEsewaPayment } from '../../services/payment.service';
 
 interface PaymentModalProps {
   orderId: string;
@@ -20,27 +20,48 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
   const [selectedMethod, setSelectedMethod] = useState<'KHALTI' | 'ESEWA' | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const esewaFormRef = useRef<HTMLFormElement>(null);
 
   const handlePay = async () => {
     if (!selectedMethod) return;
-
-    if (selectedMethod === 'ESEWA') {
-      setError('eSewa payment is coming soon. Please use Khalti for now.');
-      return;
-    }
 
     setLoading(true);
     setError('');
 
     try {
-      const res = await initiateKhaltiPayment(orderId);
+      if (selectedMethod === 'KHALTI') {
+        const res = await initiateKhaltiPayment(orderId);
 
-      if (res.success && res.data) {
-        onPaymentInitiated?.();
-        // Redirect to Khalti payment page
-        window.location.href = res.data.payment_url;
-      } else {
-        setError(res.message || 'Failed to initiate payment');
+        if (res.success && res.data) {
+          onPaymentInitiated?.();
+          window.location.href = res.data.payment_url;
+        } else {
+          setError(res.message || 'Failed to initiate payment');
+        }
+      } else if (selectedMethod === 'ESEWA') {
+        const res = await initiateEsewaPayment(orderId);
+
+        if (res.success && res.data) {
+          onPaymentInitiated?.();
+          // eSewa requires a form POST submission — build and auto-submit a hidden form
+          const form = esewaFormRef.current;
+          if (form) {
+            form.action = res.data.payment_url;
+            // Clear any existing hidden inputs
+            form.innerHTML = '';
+            // Add each formData field as a hidden input
+            Object.entries(res.data.formData).forEach(([key, value]) => {
+              const input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = key;
+              input.value = value;
+              form.appendChild(input);
+            });
+            form.submit();
+          }
+        } else {
+          setError(res.message || 'Failed to initiate payment');
+        }
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to initiate payment. Please try again.');
@@ -51,6 +72,9 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      {/* Hidden form for eSewa POST redirect */}
+      <form ref={esewaFormRef} method="POST" style={{ display: 'none' }} />
+
       <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
@@ -104,7 +128,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             )}
           </button>
 
-          {/* eSewa (Coming Soon) */}
+          {/* eSewa */}
           <button
             onClick={() => { setSelectedMethod('ESEWA'); setError(''); }}
             className={`w-full flex items-center gap-4 p-4 rounded-xl border-2 transition ${
@@ -120,9 +144,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
               <p className="font-semibold text-gray-900">eSewa</p>
               <p className="text-xs text-gray-500">Pay with eSewa Wallet</p>
             </div>
-            <span className="text-[10px] font-medium text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full flex-shrink-0">
-              Coming Soon
-            </span>
+            {selectedMethod === 'ESEWA' && (
+              <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6L5 9L10 3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            )}
           </button>
         </div>
 
@@ -143,7 +171,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
             {loading ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                Redirecting to {selectedMethod}...
+                Redirecting to {selectedMethod === 'KHALTI' ? 'Khalti' : 'eSewa'}...
               </>
             ) : (
               <>
@@ -156,7 +184,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
           <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
             <Shield size={12} />
-            <span>Secure payment powered by {selectedMethod || 'Digital Wallet'}</span>
+            <span>Secure payment powered by {selectedMethod === 'KHALTI' ? 'Khalti' : selectedMethod === 'ESEWA' ? 'eSewa' : 'Digital Wallet'}</span>
           </div>
         </div>
       </div>

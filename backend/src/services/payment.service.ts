@@ -1,4 +1,5 @@
 import axios from 'axios';
+import crypto from 'crypto';
 import prisma from '../config/database';
 import env from '../config/env';
 import { OrderStatus, PaymentStatus, PaymentMethod, UserRole } from '@prisma/client';
@@ -298,6 +299,356 @@ export const verifyKhaltiPayment = async (
     io.to(`user:${data.customerId}`).emit('paymentSuccess', paymentPayload);
   } catch (socketError) {
     // Socket emission should not fail the whole payment flow
+    console.error('[Payment] Socket emit error:', socketError);
+  }
+
+  return updatedOrder;
+};
+
+// ── eSewa helpers ─────────────────────────────────────
+
+/**
+ * Generate HMAC-SHA256 signature for eSewa payload.
+ * eSewa requires a Base64-encoded HMAC-SHA256 of
+ * "total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={product_code}"
+ */
+const generateEsewaSignature = (
+  totalAmount: string,
+  transactionUuid: string,
+  productCode: string
+): string => {
+  const message = `total_amount=${totalAmount},transaction_uuid=${transactionUuid},product_code=${productCode}`;
+  const hmac = crypto.createHmac('sha256', env.ESEWA_SECRET_KEY);
+  hmac.update(message);
+  return hmac.digest('base64');
+};
+
+// ── eSewa Types ───────────────────────────────────────
+
+export interface EsewaInitiateData {
+  orderId: string;
+  customerId: string;
+}
+
+export interface EsewaVerifyData {
+  encodedResponse: string; // base64-encoded JSON from eSewa redirect
+  orderId: string;
+  customerId: string;
+}
+
+interface EsewaStatusResponse {
+  product_code: string;
+  transaction_uuid: string;
+  total_amount: number;
+  status: 'COMPLETE' | 'PENDING' | 'FULL_REFUND' | 'PARTIAL_REFUND' | 'AMBIGUOUS' | 'NOT_FOUND';
+  ref_id: string;
+}
+
+// ── Initiate eSewa payment ───────────────────────────
+
+export const initiateEsewaPayment = async (
+  data: EsewaInitiateData
+): Promise<{
+  payment_url: string;
+  formData: Record<string, string>;
+}> => {
+  // 1. Fetch the order and validate
+  const order = await prisma.order.findUnique({
+    where: { id: data.orderId },
+    include: {
+      service: { select: { name: true } },
+      customer: {
+        select: {
+          id: true,
+          email: true,
+          profile: { select: { name: true, phone: true } },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw Object.assign(new Error('Order not found'), { statusCode: 404 });
+  }
+
+  if (order.customerId !== data.customerId) {
+    throw Object.assign(new Error('Unauthorized: you do not own this order'), { statusCode: 403 });
+  }
+
+  if (order.status !== OrderStatus.COMPLETED) {
+    throw Object.assign(
+      new Error(`Order must be in COMPLETED status to make payment. Current status: ${order.status}`),
+      { statusCode: 400 }
+    );
+  }
+
+  if (order.paymentStatus === PaymentStatus.PAID) {
+    throw Object.assign(new Error('Order is already paid'), { statusCode: 400 });
+  }
+
+  // 2. eSewa expects amount in NPR (not paisa)
+  const amount = Number(order.totalAmount);
+  const taxAmount = 0;
+  const totalAmount = amount + taxAmount;
+  const productServiceCharge = 0;
+  const productDeliveryCharge = 0;
+
+  // 3. Use the orderId as transaction_uuid for traceability
+  const transactionUuid = order.id;
+  const productCode = env.ESEWA_MERCHANT_ID;
+
+  // 4. Generate HMAC signature
+  const signature = generateEsewaSignature(
+    totalAmount.toString(),
+    transactionUuid,
+    productCode
+  );
+
+  // 5. Build callback URLs
+  const successUrl = `${env.FRONTEND_URL}/payment/esewa/callback`;
+  const failureUrl = `${env.FRONTEND_URL}/payment/esewa/callback?status=failed&orderId=${order.id}`;
+
+  // 6. Build form data for eSewa
+  const formData: Record<string, string> = {
+    amount: amount.toString(),
+    tax_amount: taxAmount.toString(),
+    total_amount: totalAmount.toString(),
+    transaction_uuid: transactionUuid,
+    product_code: productCode,
+    product_service_charge: productServiceCharge.toString(),
+    product_delivery_charge: productDeliveryCharge.toString(),
+    success_url: successUrl,
+    failure_url: failureUrl,
+    signed_field_names: 'total_amount,transaction_uuid,product_code',
+    signature,
+  };
+
+  // 7. Create a PENDING payment record
+  await prisma.payment.create({
+    data: {
+      orderId: order.id,
+      amount: order.totalAmount,
+      technicianAmount: order.technicianAmount,
+      platformAmount: order.platformAmount,
+      method: PaymentMethod.ESEWA,
+      transactionId: transactionUuid, // orderId as initial txn reference
+      status: PaymentStatus.PENDING,
+    },
+  });
+
+  // Update order payment method
+  await prisma.order.update({
+    where: { id: order.id },
+    data: { paymentMethod: PaymentMethod.ESEWA },
+  });
+
+  return {
+    payment_url: `${env.ESEWA_GATEWAY_URL}/api/epay/main/v2/form`,
+    formData,
+  };
+};
+
+// ── Verify eSewa payment ─────────────────────────────
+
+export const verifyEsewaPayment = async (
+  data: EsewaVerifyData
+): Promise<any> => {
+  // 1. Decode the base64 response from eSewa redirect
+  let decodedResponse: any;
+  try {
+    const decoded = Buffer.from(data.encodedResponse, 'base64').toString('utf-8');
+    decodedResponse = JSON.parse(decoded);
+  } catch {
+    throw Object.assign(new Error('Invalid eSewa response data'), { statusCode: 400 });
+  }
+
+  const {
+    transaction_uuid,
+    status: esewaStatus,
+    total_amount,
+    transaction_code,
+    signed_field_names,
+    signature: esewaSignature,
+  } = decodedResponse;
+
+  if (!transaction_uuid || !esewaStatus) {
+    throw Object.assign(new Error('Missing required fields in eSewa response'), { statusCode: 400 });
+  }
+
+  // 2. Verify the signature from eSewa callback
+  if (signed_field_names && esewaSignature) {
+    const fields = signed_field_names.split(',');
+    const message = fields
+      .map((field: string) => `${field}=${decodedResponse[field]}`)
+      .join(',');
+    const expectedSignature = crypto
+      .createHmac('sha256', env.ESEWA_SECRET_KEY)
+      .update(message)
+      .digest('base64');
+
+    if (expectedSignature !== esewaSignature) {
+      throw Object.assign(new Error('eSewa signature verification failed'), { statusCode: 400 });
+    }
+  }
+
+  // 3. Fetch order and validate ownership
+  const order = await prisma.order.findUnique({
+    where: { id: data.orderId },
+    include: {
+      service: { include: { category: true } },
+      customer: {
+        select: {
+          id: true,
+          email: true,
+          profile: { select: { name: true, phone: true } },
+        },
+      },
+      technician: {
+        select: {
+          id: true,
+          email: true,
+          profile: { select: { name: true, phone: true, avatar: true } },
+        },
+      },
+    },
+  });
+
+  if (!order) {
+    throw Object.assign(new Error('Order not found'), { statusCode: 404 });
+  }
+
+  if (order.customerId !== data.customerId) {
+    throw Object.assign(new Error('Unauthorized'), { statusCode: 403 });
+  }
+
+  if (order.paymentStatus === PaymentStatus.PAID) {
+    return order; // already paid – idempotent
+  }
+
+  // 4. Verify the transaction with eSewa's status check API
+  let statusResult: EsewaStatusResponse;
+  try {
+    const response = await axios.get<EsewaStatusResponse>(
+      `${env.ESEWA_GATEWAY_URL}/api/epay/transaction/status/`,
+      {
+        params: {
+          product_code: env.ESEWA_MERCHANT_ID,
+          total_amount: total_amount,
+          transaction_uuid: transaction_uuid,
+        },
+        timeout: 30_000,
+      }
+    );
+    statusResult = response.data;
+  } catch (error: any) {
+    console.error('[eSewa] Status check error:', error?.response?.data || error.message);
+    throw Object.assign(new Error('Failed to verify payment with eSewa'), { statusCode: 502 });
+  }
+
+  // 5. Check if payment is COMPLETE
+  if (statusResult.status !== 'COMPLETE') {
+    await prisma.payment.updateMany({
+      where: { orderId: order.id, method: PaymentMethod.ESEWA },
+      data: { status: PaymentStatus.FAILED },
+    });
+
+    throw Object.assign(
+      new Error(`Payment not completed. eSewa status: ${statusResult.status}`),
+      { statusCode: 400 }
+    );
+  }
+
+  // 6. Verify amount matches
+  const expectedAmount = Number(order.totalAmount);
+  if (Number(statusResult.total_amount) !== expectedAmount) {
+    await prisma.payment.updateMany({
+      where: { orderId: order.id, method: PaymentMethod.ESEWA },
+      data: { status: PaymentStatus.FAILED },
+    });
+
+    throw Object.assign(new Error('Payment amount mismatch'), { statusCode: 400 });
+  }
+
+  // 7. Update payment record
+  const refId = statusResult.ref_id || transaction_code || transaction_uuid;
+  await prisma.payment.updateMany({
+    where: { orderId: order.id, method: PaymentMethod.ESEWA },
+    data: {
+      status: PaymentStatus.PAID,
+      transactionId: refId,
+      paidAt: new Date(),
+    },
+  });
+
+  // 8. Update order status
+  const updatedOrder = await prisma.order.update({
+    where: { id: order.id },
+    data: {
+      paymentStatus: PaymentStatus.PAID,
+      paymentId: refId,
+    },
+    include: {
+      service: { include: { category: true } },
+      customer: {
+        select: {
+          id: true,
+          email: true,
+          profile: { select: { name: true, phone: true } },
+        },
+      },
+      technician: {
+        select: {
+          id: true,
+          email: true,
+          profile: { select: { name: true, phone: true, avatar: true } },
+        },
+      },
+      payments: { orderBy: { createdAt: 'desc' }, take: 1 },
+    },
+  });
+
+  // 9. Create booking history entry
+  await prisma.bookingHistory.create({
+    data: {
+      orderId: order.id,
+      userId: data.customerId,
+      action: 'PAYMENT_COMPLETED',
+      status: 'PAID',
+      notes: `Payment of NPR ${Number(order.totalAmount).toLocaleString()} via eSewa (ref: ${refId})`,
+    },
+  });
+
+  // 10. Emit real-time socket events
+  try {
+    const io = getIO();
+
+    const paymentPayload = {
+      orderId: updatedOrder.id,
+      paymentStatus: 'PAID',
+      paymentMethod: 'ESEWA',
+      transactionId: refId,
+      amount: Number(updatedOrder.totalAmount),
+      order: updatedOrder,
+    };
+
+    // Notify admin(s)
+    const admins = await prisma.user.findMany({
+      where: { role: UserRole.ADMIN, isActive: true },
+      select: { id: true },
+    });
+
+    for (const admin of admins) {
+      io.to(`user:${admin.id}`).emit('paymentSuccess', paymentPayload);
+    }
+
+    // Notify technician
+    if (updatedOrder.technicianId) {
+      io.to(`user:${updatedOrder.technicianId}`).emit('paymentSuccess', paymentPayload);
+    }
+
+    // Notify customer (confirmation)
+    io.to(`user:${data.customerId}`).emit('paymentSuccess', paymentPayload);
+  } catch (socketError) {
     console.error('[Payment] Socket emit error:', socketError);
   }
 

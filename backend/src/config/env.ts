@@ -25,6 +25,9 @@ const envSchema = z.object({
   KHALTI_SECRET_KEY: z.string().min(1),
   KHALTI_GATEWAY_URL: z.string().url().default('https://a.khalti.com/api/v2'),
   KHALTI_WEBSITE_URL: z.string().url().optional(),
+  ESEWA_MERCHANT_ID: z.string().min(1).default('EPAYTEST'),
+  ESEWA_SECRET_KEY: z.string().min(1).default('8gBm/:&EnhH.1/q'),
+  ESEWA_GATEWAY_URL: z.string().url().default('https://rc-epay.esewa.com.np'),
 });
 
 export type Env = z.infer<typeof envSchema>;

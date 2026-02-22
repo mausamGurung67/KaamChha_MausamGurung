@@ -35,3 +35,38 @@ export const verifyKhalti = async (req: Request, res: Response): Promise<void> =
     data: { order },
   });
 };
+
+/**
+ * POST /api/payments/esewa/initiate
+ * Body: { orderId }
+ */
+export const initiateEsewa = async (req: Request, res: Response): Promise<void> => {
+  const result = await paymentService.initiateEsewaPayment({
+    orderId: req.body.orderId,
+    customerId: req.userId!,
+  });
+
+  res.json({
+    success: true,
+    message: 'eSewa payment initiated',
+    data: result,
+  });
+};
+
+/**
+ * POST /api/payments/esewa/verify
+ * Body: { encodedResponse, orderId }
+ */
+export const verifyEsewa = async (req: Request, res: Response): Promise<void> => {
+  const order = await paymentService.verifyEsewaPayment({
+    encodedResponse: req.body.encodedResponse,
+    orderId: req.body.orderId,
+    customerId: req.userId!,
+  });
+
+  res.json({
+    success: true,
+    message: 'Payment verified successfully',
+    data: { order },
+  });
+};

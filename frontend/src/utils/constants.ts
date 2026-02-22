@@ -119,6 +119,10 @@ export const API_ENDPOINTS = {
       INITIATE: '/payments/khalti/initiate',
       VERIFY: '/payments/khalti/verify',
     },
+    ESEWA: {
+      INITIATE: '/payments/esewa/initiate',
+      VERIFY: '/payments/esewa/verify',
+    },
   },
   
   // Health
