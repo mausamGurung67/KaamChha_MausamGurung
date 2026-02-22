@@ -22,6 +22,9 @@ const envSchema = z.object({
   COMMISSION_RATE_TECHNICIAN: z.string().default('0.8'),
   COMMISSION_RATE_PLATFORM: z.string().default('0.2'),
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+  KHALTI_SECRET_KEY: z.string().min(1),
+  KHALTI_GATEWAY_URL: z.string().url().default('https://a.khalti.com/api/v2'),
+  KHALTI_WEBSITE_URL: z.string().url().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

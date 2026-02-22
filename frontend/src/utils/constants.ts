@@ -112,6 +112,14 @@ export const API_ENDPOINTS = {
   UPLOAD: {
     IMAGE: '/upload/image',
   },
+
+  // Payments
+  PAYMENTS: {
+    KHALTI: {
+      INITIATE: '/payments/khalti/initiate',
+      VERIFY: '/payments/khalti/verify',
+    },
+  },
   
   // Health
   HEALTH: '/health',

@@ -34,6 +34,7 @@ import AdminBookings from '../pages/admin/AdminBookings';
 import MyBookings from '../pages/customer/MyBookings';
 import TechnicianBookings from '../pages/technician/TechnicianBookings';
 import ChatPage from '../pages/chat/ChatPage';
+import KhaltiCallback from '../pages/payment/KhaltiCallback';
 
 // Admin sidebar nav items
 const adminNavItems: NavItem[] = [
@@ -114,6 +115,16 @@ const AppRoutes: React.FC = () => {
         element={
           <ProtectedRoute allowedRoles={['CUSTOMER']}>
             <MyBookings />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Khalti payment callback */}
+      <Route
+        path="/payment/khalti/callback"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <KhaltiCallback />
           </ProtectedRoute>
         }
       />

@@ -14,6 +14,7 @@ import {
   ArrowLeft,
   UserCheck,
   Star,
+  CreditCard,
 } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 import {
@@ -25,6 +26,7 @@ import {
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { BookingCardSkeleton } from '../../components/common/Skeleton';
+import PaymentModal from '../../components/payment/PaymentModal';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pending',
@@ -47,6 +49,7 @@ const MyBookings: React.FC = () => {
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [actionLoading, setActionLoading] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
+  const [paymentBooking, setPaymentBooking] = useState<Booking | null>(null);
 
   // Show success banner if redirected from booking
   useEffect(() => {
@@ -346,6 +349,21 @@ const MyBookings: React.FC = () => {
                             Confirm Completion
                           </button>
                         )}
+                        {b.status === 'COMPLETED' && b.paymentStatus === 'PENDING' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setPaymentBooking(b); }}
+                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-2"
+                          >
+                            <CreditCard size={14} />
+                            Pay Now — NPR {Number(b.totalAmount).toLocaleString()}
+                          </button>
+                        )}
+                        {b.paymentStatus === 'PAID' && (
+                          <div className="flex-1 bg-green-50 border border-green-200 text-green-700 text-sm font-medium py-2.5 rounded-lg flex items-center justify-center gap-2">
+                            <CheckCircle size={14} />
+                            Paid
+                          </div>
+                        )}
                         {['PENDING', 'ACCEPTED', 'CONFIRMED'].includes(b.status) && (
                           <button
                             onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }}
@@ -365,6 +383,17 @@ const MyBookings: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {paymentBooking && (
+        <PaymentModal
+          orderId={paymentBooking.id}
+          amount={Number(paymentBooking.totalAmount)}
+          serviceName={paymentBooking.service.name}
+          onClose={() => setPaymentBooking(null)}
+          onPaymentInitiated={() => setPaymentBooking(null)}
+        />
+      )}
     </div>
   );
 };
