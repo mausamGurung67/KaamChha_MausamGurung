@@ -5,7 +5,7 @@ import env from '../config/env';
 import { OrderStatus, PaymentStatus, PaymentMethod, UserRole } from '@prisma/client';
 import { getIO } from '../socket';
 
-// ── Khalti API helpers ────────────────────────────────
+// ── Khalti API helpers 
 
 const khaltiApi = axios.create({
   baseURL: env.KHALTI_GATEWAY_URL,
@@ -15,8 +15,6 @@ const khaltiApi = axios.create({
   },
   timeout: 30_000,
 });
-
-// ── Types ─────────────────────────────────────────────
 
 export interface KhaltiInitiateData {
   orderId: string;
@@ -45,7 +43,7 @@ interface KhaltiLookupResponse {
   refunded: boolean;
 }
 
-// ── Initiate Khalti payment ──────────────────────────
+// ── Initiate Khalti payment ──
 
 export const initiateKhaltiPayment = async (
   data: KhaltiInitiateData
@@ -138,7 +136,7 @@ export const initiateKhaltiPayment = async (
   }
 };
 
-// ── Verify Khalti payment ────────────────────────────
+// ── Verify Khalti payment ──
 
 export const verifyKhaltiPayment = async (
   data: KhaltiVerifyData
@@ -307,11 +305,6 @@ export const verifyKhaltiPayment = async (
 
 // ── eSewa helpers ─────────────────────────────────────
 
-/**
- * Generate HMAC-SHA256 signature for eSewa payload.
- * eSewa requires a Base64-encoded HMAC-SHA256 of
- * "total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={product_code}"
- */
 const generateEsewaSignature = (
   totalAmount: string,
   transactionUuid: string,
@@ -323,8 +316,7 @@ const generateEsewaSignature = (
   return hmac.digest('base64');
 };
 
-// ── eSewa Types ───────────────────────────────────────
-
+// ── eSewa Types ────
 export interface EsewaInitiateData {
   orderId: string;
   customerId: string;
