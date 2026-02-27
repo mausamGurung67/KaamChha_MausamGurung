@@ -67,6 +67,7 @@ import customerRoutes from './routes/customer.routes';
 import technicianRoutes from './routes/technician.routes';
 import profileRoutes from './routes/profile.routes';
 import paymentRoutes from './routes/payment.routes';
+import reviewRoutes from './routes/review.routes';
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -80,6 +81,7 @@ app.use('/api/customer', customerRoutes);
 app.use('/api/technician', technicianRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Error handling
 app.use(notFoundHandler);

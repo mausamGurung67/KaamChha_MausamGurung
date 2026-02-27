@@ -10,17 +10,33 @@ import {
   FileSearch,
   RefreshCw,
   ArrowRight,
+  Star,
 } from 'lucide-react';
 import * as technicianService from '../../services/technician.service';
 import type { TechnicianStats, RecentOrder } from '../../services/technician.service';
 import { TechDashboardSkeleton } from '../../components/common/Skeleton';
+import { useAuth } from '../../hooks/useAuth';
+import { getTechnicianRating } from '../../services/review.service';
+import { useReviewSocket } from '../../hooks/useReviewSocket';
 
 const TechnicianDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [stats, setStats] = useState<TechnicianStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [rating, setRating] = useState<{ averageRating: number; totalReviews: number }>({ averageRating: 0, totalReviews: 0 });
+  const [newReviewToast, setNewReviewToast] = useState<string | null>(null);
+
+  // Real-time review updates
+  useReviewSocket({
+    onNewReview: (payload) => {
+      setRating({ averageRating: payload.averageRating, totalReviews: payload.totalReviews });
+      setNewReviewToast(`${payload.review.customer.profile?.name || 'A customer'} rated you ${payload.review.rating}/5!`);
+      setTimeout(() => setNewReviewToast(null), 5000);
+    },
+  });
 
   const fetchDashboard = async () => {
     setLoading(true);
@@ -30,6 +46,15 @@ const TechnicianDashboard: React.FC = () => {
       if (response.success && response.data) {
         setStats(response.data.stats);
         setRecentOrders(response.data.recentOrders);
+      }
+      // Fetch rating
+      if (user?.id) {
+        try {
+          const ratingRes = await getTechnicianRating(user.id);
+          if (ratingRes.success && ratingRes.data) {
+            setRating(ratingRes.data);
+          }
+        } catch { /* no reviews yet */ }
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to load dashboard');
@@ -188,6 +213,14 @@ const TechnicianDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* New review toast */}
+      {newReviewToast && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3 animate-pulse">
+          <Star size={18} className="text-amber-500 fill-amber-500" />
+          <p className="text-sm text-amber-700 font-medium">{newReviewToast}</p>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => (
@@ -206,18 +239,50 @@ const TechnicianDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Earnings card */}
-      <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-orange-500 text-sm font-medium">Total Earnings</p>
-            <h2 className="text-3xl font-bold mt-1 text-orange-700">NPR {stats.totalEarnings.toLocaleString()}</h2>
-            <p className="text-orange-400 text-sm mt-2">
-              From {stats.completedOrders} completed {stats.completedOrders === 1 ? 'job' : 'jobs'}
-            </p>
+      {/* Earnings + Rating Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Earnings card */}
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-500 text-sm font-medium">Total Earnings</p>
+              <h2 className="text-3xl font-bold mt-1 text-orange-700">NPR {stats.totalEarnings.toLocaleString()}</h2>
+              <p className="text-orange-400 text-sm mt-2">
+                From {stats.completedOrders} completed {stats.completedOrders === 1 ? 'job' : 'jobs'}
+              </p>
+            </div>
+            <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
+              <IndianRupee size={28} className="text-orange-500" />
+            </div>
           </div>
-          <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
-            <IndianRupee size={28} className="text-orange-500" />
+        </div>
+
+        {/* Rating card */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-amber-500 text-sm font-medium">Your Rating</p>
+              <div className="flex items-center gap-2 mt-1">
+                <h2 className="text-3xl font-bold text-amber-700">
+                  {rating.totalReviews > 0 ? rating.averageRating : '-'}
+                </h2>
+                <div className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={18}
+                      className={i < Math.round(rating.averageRating) ? 'text-amber-400 fill-amber-400' : 'text-amber-200'}
+                    />
+                  ))}
+                </div>
+              </div>
+              <p className="text-amber-400 text-sm mt-2">
+                {rating.totalReviews} review{rating.totalReviews !== 1 ? 's' : ''}
+              </p>
+            </div>
+            <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
+              <Star size={28} className="text-amber-500" />
+            </div>
           </div>
         </div>
       </div>

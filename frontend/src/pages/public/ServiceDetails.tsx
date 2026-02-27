@@ -20,6 +20,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { getServiceById, type ServiceItem } from '../../services/service.service';
 import { createBooking } from '../../services/booking.service';
 import { ServiceDetailSkeleton } from '../../components/common/Skeleton';
+import ReviewList from '../../components/review/ReviewList';
 
 const ServiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -294,16 +295,10 @@ const ServiceDetails: React.FC = () => {
                 </div>
               </div>
 
-              {/* Customer Reviews (static for now) */}
+              {/* Customer Reviews */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 md:p-8">
                 <h2 className="text-lg font-bold text-gray-900 mb-6">Customer Reviews</h2>
-
-                {/* Empty state */}
-                <div className="text-center py-8 text-gray-400">
-                  <Star size={32} className="mx-auto mb-3 text-gray-200" />
-                  <p className="text-sm font-medium">No reviews yet</p>
-                  <p className="text-xs mt-1">Be the first to review this service</p>
-                </div>
+                <ReviewList serviceId={service.id} initialLimit={5} />
               </div>
             </div>
 

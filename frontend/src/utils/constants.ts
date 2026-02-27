@@ -124,6 +124,16 @@ export const API_ENDPOINTS = {
       VERIFY: '/payments/esewa/verify',
     },
   },
+
+  // Reviews
+  REVIEWS: {
+    CREATE: '/reviews',
+    TECHNICIAN: (technicianId: string) => `/reviews/technician/${technicianId}`,
+    TECHNICIAN_RATING: (technicianId: string) => `/reviews/technician/${technicianId}/rating`,
+    SERVICE: (serviceId: string) => `/reviews/service/${serviceId}`,
+    ORDER: (orderId: string) => `/reviews/order/${orderId}`,
+    CAN_REVIEW: (orderId: string) => `/reviews/order/${orderId}/can-review`,
+  },
   
   // Health
   HEALTH: '/health',

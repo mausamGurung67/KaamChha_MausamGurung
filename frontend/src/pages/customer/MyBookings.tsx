@@ -27,6 +27,8 @@ import {
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { BookingCardSkeleton } from '../../components/common/Skeleton';
 import PaymentModal from '../../components/payment/PaymentModal';
+import ReviewModal from '../../components/review/ReviewModal';
+import { getOrderReview, type Review } from '../../services/review.service';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pending',
@@ -50,6 +52,8 @@ const MyBookings: React.FC = () => {
   const [actionLoading, setActionLoading] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [paymentBooking, setPaymentBooking] = useState<Booking | null>(null);
+  const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
+  const [orderReviews, setOrderReviews] = useState<Record<string, Review | null>>({});
 
   // Show success banner if redirected from booking
   useEffect(() => {
@@ -81,6 +85,22 @@ const MyBookings: React.FC = () => {
           );
         }
         setBookings(orders);
+
+        // Fetch reviews for completed+paid bookings
+        const paidBookings = orders.filter(
+          (b) => b.status === 'COMPLETED' && b.paymentStatus === 'PAID'
+        );
+        for (const b of paidBookings) {
+          try {
+            const reviewRes = await getOrderReview(b.id);
+            if (reviewRes.success) {
+              setOrderReviews((prev) => ({ ...prev, [b.id]: reviewRes.data?.review ?? null }));
+            }
+          } catch {
+            // Review not found is fine
+            setOrderReviews((prev) => ({ ...prev, [b.id]: null }));
+          }
+        }
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to load bookings');
@@ -358,6 +378,21 @@ const MyBookings: React.FC = () => {
                             Pay Now — NPR {Number(b.totalAmount).toLocaleString()}
                           </button>
                         )}
+                        {b.paymentStatus === 'PAID' && !orderReviews[b.id] && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setReviewBooking(b); }}
+                            className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-2"
+                          >
+                            <Star size={14} />
+                            Leave Review
+                          </button>
+                        )}
+                        {b.paymentStatus === 'PAID' && orderReviews[b.id] && (
+                          <div className="flex-1 bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium py-2.5 rounded-lg flex items-center justify-center gap-2">
+                            <Star size={14} className="fill-amber-400 text-amber-400" />
+                            Reviewed ({orderReviews[b.id]!.rating}/5)
+                          </div>
+                        )}
                         {b.paymentStatus === 'PAID' && (
                           <div className="flex-1 bg-green-50 border border-green-200 text-green-700 text-sm font-medium py-2.5 rounded-lg flex items-center justify-center gap-2">
                             <CheckCircle size={14} />
@@ -392,6 +427,21 @@ const MyBookings: React.FC = () => {
           serviceName={paymentBooking.service.name}
           onClose={() => setPaymentBooking(null)}
           onPaymentInitiated={() => setPaymentBooking(null)}
+        />
+      )}
+
+      {/* Review Modal */}
+      {reviewBooking && (
+        <ReviewModal
+          orderId={reviewBooking.id}
+          serviceName={reviewBooking.service.name}
+          technicianName={reviewBooking.technician?.profile?.name || 'Technician'}
+          onClose={() => setReviewBooking(null)}
+          onReviewSubmitted={(data) => {
+            setOrderReviews((prev) => ({ ...prev, [reviewBooking.id]: data?.review ?? { rating: data?.review?.rating || 5, id: 'temp' } }));
+            setReviewBooking(null);
+            fetchBookings();
+          }}
         />
       )}
     </div>
