@@ -14,6 +14,7 @@ export const setCookie = (
     secure: env.NODE_ENV === 'production',
     sameSite: sameSitePolicy,
     maxAge,
+    path: '/',
   });
 };
 
@@ -22,5 +23,6 @@ export const clearCookie = (res: Response, name: string): void => {
     httpOnly: true,
     secure: env.NODE_ENV === 'production',
     sameSite: sameSitePolicy,
+    path: '/',
   });
 };

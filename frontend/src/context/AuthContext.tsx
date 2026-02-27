@@ -58,8 +58,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       .catch(() => {
         // Session is dead — clean up everything
         localStorage.removeItem(STORAGE_KEYS.USER);
-        localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
         setUser(null);
         setIsLoading(false);
       });
@@ -87,11 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Reset the interceptor's logged-out flag so refresh works again
         resetAuthInterceptor();
         setUser(response.data.user);
-        // Store token if provided in response
-        const tokenData = response.data as unknown as { accessToken?: string };
-        if (tokenData.accessToken) {
-          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.accessToken);
-        }
+        // Tokens are handled via httpOnly cookies — no localStorage needed
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -110,11 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (response.success && response.data) {
         resetAuthInterceptor();
         setUser(response.data.user);
-        // Store token if provided in response
-        const tokenData = response.data as unknown as { accessToken?: string };
-        if (tokenData.accessToken) {
-          localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, tokenData.accessToken);
-        }
+        // Tokens are handled via httpOnly cookies — no localStorage needed
         // Store email for OTP verification page
         localStorage.setItem(STORAGE_KEYS.PENDING_EMAIL, data.email);
       }
@@ -136,9 +126,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setUser(null);
       localStorage.removeItem(STORAGE_KEYS.USER);
-      localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-      localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
       localStorage.removeItem(STORAGE_KEYS.PENDING_EMAIL);
+      // ACCESS_TOKEN and REFRESH_TOKEN are httpOnly cookies cleared by the server
       setIsLoading(false);
     }
   }, []);
