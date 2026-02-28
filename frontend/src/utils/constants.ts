@@ -133,6 +133,9 @@ export const API_ENDPOINTS = {
     SERVICE: (serviceId: string) => `/reviews/service/${serviceId}`,
     ORDER: (orderId: string) => `/reviews/order/${orderId}`,
     CAN_REVIEW: (orderId: string) => `/reviews/order/${orderId}/can-review`,
+    ADMIN_ALL: '/reviews/admin/all',
+    ADMIN_TOGGLE: (id: string) => `/reviews/admin/${id}/toggle-approval`,
+    ADMIN_DELETE: (id: string) => `/reviews/admin/${id}`,
   },
 
   // Notifications

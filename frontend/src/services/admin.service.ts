@@ -112,6 +112,21 @@ export const getPlatformStats = async (): Promise<ApiResponse<PlatformStats>> =>
   return response.data;
 };
 
+export const getRevenueAnalytics = async (): Promise<ApiResponse<any>> => {
+  const response = await api.get(API_ENDPOINTS.ADMIN.STATS.REVENUE);
+  return response.data;
+};
+
+export const getOrderAnalytics = async (): Promise<ApiResponse<any>> => {
+  const response = await api.get(API_ENDPOINTS.ADMIN.STATS.ORDERS);
+  return response.data;
+};
+
+export const getUserGrowthAnalytics = async (): Promise<ApiResponse<any>> => {
+  const response = await api.get(API_ENDPOINTS.ADMIN.STATS.USERS);
+  return response.data;
+};
+
 export const getTechnicianStats = async (): Promise<ApiResponse<TechnicianStats>> => {
   const response = await api.get(API_ENDPOINTS.ADMIN.TECHNICIANS.STATS);
   return response.data;

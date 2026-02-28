@@ -102,3 +102,51 @@ export const getTechnicianRating = async (req: Request, res: Response): Promise<
     data: result,
   });
 };
+
+/**
+ * GET /api/reviews/admin/all
+ * Query: ?page=1&limit=10&search=...&rating=5&isApproved=true
+ */
+export const getAllReviews = async (req: Request, res: Response): Promise<void> => {
+  const filters = {
+    search: req.query.search as string | undefined,
+    rating: req.query.rating ? parseInt(req.query.rating as string) : undefined,
+    isApproved: req.query.isApproved !== undefined
+      ? req.query.isApproved === 'true'
+      : undefined,
+    page: req.query.page ? parseInt(req.query.page as string) : undefined,
+    limit: req.query.limit ? parseInt(req.query.limit as string) : undefined,
+  };
+
+  const result = await reviewService.getAllReviews(filters);
+
+  res.json({
+    success: true,
+    data: result,
+  });
+};
+
+/**
+ * PATCH /api/reviews/admin/:id/toggle-approval
+ */
+export const toggleReviewApproval = async (req: Request, res: Response): Promise<void> => {
+  const review = await reviewService.toggleReviewApproval(req.params.id);
+
+  res.json({
+    success: true,
+    message: `Review ${review.isApproved ? 'approved' : 'hidden'}`,
+    data: { review },
+  });
+};
+
+/**
+ * DELETE /api/reviews/admin/:id
+ */
+export const deleteReview = async (req: Request, res: Response): Promise<void> => {
+  await reviewService.deleteReview(req.params.id);
+
+  res.json({
+    success: true,
+    message: 'Review deleted successfully',
+  });
+};

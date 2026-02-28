@@ -5,7 +5,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import RoleRedirect from '../components/common/RoleRedirect';
-import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList, MessageSquare, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList, MessageSquare, FileText, Star } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -38,6 +38,7 @@ import MyServiceRequests from '../pages/customer/MyServiceRequests';
 import TechnicianBookings from '../pages/technician/TechnicianBookings';
 import TechnicianServiceRequests from '../pages/technician/TechnicianServiceRequests';
 import AdminServiceRequests from '../pages/admin/AdminServiceRequests';
+import AdminReviews from '../pages/admin/AdminReviews';
 import ChatPage from '../pages/chat/ChatPage';
 import KhaltiCallback from '../pages/payment/KhaltiCallback';
 import EsewaCallback from '../pages/payment/EsewaCallback';
@@ -84,6 +85,11 @@ const adminNavItems: NavItem[] = [
     label: 'Service Requests',
     path: '/admin/service-requests',
     icon: <FileText size={20} />,
+  },
+  {
+    label: 'Reviews & Ratings',
+    path: '/admin/reviews',
+    icon: <Star size={20} />,
   },
   {
     label: 'Chat',
@@ -184,6 +190,7 @@ const AppRoutes: React.FC = () => {
         <Route path="bookings" element={<AdminBookings />} />
         <Route path="customers" element={<ManageCustomers />} />
         <Route path="service-requests" element={<AdminServiceRequests />} />
+        <Route path="reviews" element={<AdminReviews />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="profile" element={<Profile />} />
       </Route>

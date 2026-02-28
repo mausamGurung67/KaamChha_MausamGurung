@@ -5,7 +5,6 @@ import {
   Tag,
   DollarSign,
   User,
-  Loader2,
   Search,
   CheckCircle,
 } from 'lucide-react';
@@ -18,6 +17,7 @@ import {
 } from '../../services/serviceRequest.service';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../hooks/useAuth';
+import { ServiceRequestListSkeleton } from '../../components/common/Skeleton';
 
 const STATUS_COLORS: Record<string, string> = {
   OPEN: 'bg-green-100 text-green-700',
@@ -151,9 +151,7 @@ const TechnicianServiceRequests: React.FC = () => {
 
       {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="animate-spin text-orange-500" size={32} />
-        </div>
+        <ServiceRequestListSkeleton count={4} />
       ) : requests.length === 0 ? (
         <div className="text-center py-16">
           <Search size={48} className="mx-auto text-gray-300 mb-4" />

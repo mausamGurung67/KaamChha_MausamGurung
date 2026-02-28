@@ -57,4 +57,23 @@ router.get(
   reviewController.canReviewOrder
 );
 
+// ── Admin review management routes ────────────────────
+router.get(
+  '/admin/all',
+  authorize(UserRole.ADMIN),
+  reviewController.getAllReviews
+);
+
+router.patch(
+  '/admin/:id/toggle-approval',
+  authorize(UserRole.ADMIN),
+  reviewController.toggleReviewApproval
+);
+
+router.delete(
+  '/admin/:id',
+  authorize(UserRole.ADMIN),
+  reviewController.deleteReview
+);
+
 export default router;

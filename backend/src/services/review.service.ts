@@ -392,3 +392,117 @@ export const getTechnicianRating = async (
     totalReviews: result._count.rating,
   };
 };
+
+// ── Admin: List all reviews (with filters) ────────────
+
+export interface AdminReviewFilters {
+  search?: string;
+  rating?: number;
+  isApproved?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+export const getAllReviews = async (filters: AdminReviewFilters = {}): Promise<any> => {
+  const page = filters.page || 1;
+  const limit = filters.limit || 10;
+  const skip = (page - 1) * limit;
+
+  const where: any = {};
+
+  if (filters.rating) {
+    where.rating = filters.rating;
+  }
+
+  if (filters.isApproved !== undefined) {
+    where.isApproved = filters.isApproved;
+  }
+
+  if (filters.search) {
+    where.OR = [
+      { comment: { contains: filters.search, mode: 'insensitive' } },
+      { customer: { profile: { name: { contains: filters.search, mode: 'insensitive' } } } },
+      { service: { name: { contains: filters.search, mode: 'insensitive' } } },
+    ];
+  }
+
+  const [reviews, total, aggregation] = await Promise.all([
+    prisma.review.findMany({
+      where,
+      include: {
+        customer: {
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { name: true, avatar: true } },
+          },
+        },
+        technician: {
+          select: {
+            id: true,
+            email: true,
+            profile: { select: { name: true, avatar: true } },
+          },
+        },
+        service: { select: { id: true, name: true } },
+        order: { select: { id: true, totalAmount: true, completedAt: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+      skip,
+      take: limit,
+    }),
+    prisma.review.count({ where }),
+    prisma.review.aggregate({
+      _avg: { rating: true },
+      _count: { rating: true },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  return {
+    reviews,
+    total,
+    page,
+    limit,
+    totalPages,
+    overallStats: {
+      averageRating: Math.round((aggregation._avg.rating ?? 0) * 10) / 10,
+      totalReviews: aggregation._count.rating,
+    },
+  };
+};
+
+// ── Admin: Toggle review approval ─────────────────────
+
+export const toggleReviewApproval = async (id: string): Promise<any> => {
+  const review = await prisma.review.findUnique({ where: { id } });
+  if (!review) {
+    throw Object.assign(new Error('Review not found'), { statusCode: 404 });
+  }
+
+  return prisma.review.update({
+    where: { id },
+    data: { isApproved: !review.isApproved },
+    include: {
+      customer: {
+        select: {
+          id: true,
+          profile: { select: { name: true, avatar: true } },
+        },
+      },
+      service: { select: { id: true, name: true } },
+    },
+  });
+};
+
+// ── Admin: Delete a review ────────────────────────────
+
+export const deleteReview = async (id: string): Promise<void> => {
+  const review = await prisma.review.findUnique({ where: { id } });
+  if (!review) {
+    throw Object.assign(new Error('Review not found'), { statusCode: 404 });
+  }
+
+  await prisma.review.delete({ where: { id } });
+};

@@ -103,3 +103,42 @@ export const getTechnicianRating = async (
   const res = await api.get(API_ENDPOINTS.REVIEWS.TECHNICIAN_RATING(technicianId));
   return res.data;
 };
+
+// ── Admin API calls ───────────────────────────────────
+
+export interface AdminReviewsResponse {
+  reviews: Review[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  overallStats: {
+    averageRating: number;
+    totalReviews: number;
+  };
+}
+
+export const getAdminReviews = async (params?: {
+  search?: string;
+  rating?: number;
+  isApproved?: boolean;
+  page?: number;
+  limit?: number;
+}): Promise<ApiResponse<AdminReviewsResponse>> => {
+  const res = await api.get(API_ENDPOINTS.REVIEWS.ADMIN_ALL, { params });
+  return res.data;
+};
+
+export const toggleReviewApproval = async (
+  id: string
+): Promise<ApiResponse<{ review: Review }>> => {
+  const res = await api.patch(API_ENDPOINTS.REVIEWS.ADMIN_TOGGLE(id));
+  return res.data;
+};
+
+export const deleteReview = async (
+  id: string
+): Promise<ApiResponse> => {
+  const res = await api.delete(API_ENDPOINTS.REVIEWS.ADMIN_DELETE(id));
+  return res.data;
+};

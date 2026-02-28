@@ -6,12 +6,12 @@ import {
   Tag,
   DollarSign,
   User,
-  Loader2,
   Search,
   Trash2,
   XCircle,
 } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
+import { ServiceRequestListSkeleton } from '../../components/common/Skeleton';
 import {
   getMyServiceRequests,
   deleteServiceRequest,
@@ -93,9 +93,7 @@ const MyServiceRequests: React.FC = () => {
 
           {/* Content */}
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="animate-spin text-orange-500" size={32} />
-            </div>
+            <ServiceRequestListSkeleton count={3} />
           ) : requests.length === 0 ? (
             <div className="text-center py-20">
               <Search size={48} className="mx-auto text-gray-300 mb-4" />

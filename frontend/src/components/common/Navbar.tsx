@@ -59,8 +59,8 @@ const Navbar: React.FC = () => {
   return (
     <nav className="fixed top-0 w-full bg-white shadow-sm z-50 py-4">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex justify-between items-center">
-        {/* Left: Logo + Post Service / Become Technician */}
-        <div className="flex items-center gap-4">
+        {/* Left: Logo + Post a Service / Become Technician */}
+        <div className="flex items-center gap-6">
           <Link to="/" className="shrink-0">
             <img src={logoImg} alt="Kaam Chha Logo" className="h-12 w-auto" />
           </Link>
@@ -69,7 +69,7 @@ const Navbar: React.FC = () => {
               to="/post-service-request"
               className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-600 text-white text-sm px-5 py-2.5 rounded-full font-medium transition shadow-md hover:shadow-lg"
             >
-              Post Service
+              Post a Service
             </Link>
           )}
           {!user && (
