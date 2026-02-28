@@ -29,7 +29,7 @@ export const useNotifications = (): UseNotificationsReturn => {
   const fetchNotifications = useCallback(async (pageNum: number, replace = false) => {
     try {
       setLoading(true);
-      const result = await notificationApi.getNotifications(pageNum, 20);
+      const result = await notificationApi.getNotifications(pageNum, 10);
 
       unstable_batchedUpdates(() => {
         setNotifications((prev) => {

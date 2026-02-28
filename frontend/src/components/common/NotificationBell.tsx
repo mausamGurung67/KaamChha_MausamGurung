@@ -129,10 +129,15 @@ const NotificationBell: React.FC = () => {
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 max-h-[70vh] bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-lg border border-gray-200 flex flex-col z-50 animate-in fade-in slide-in-from-top-2 duration-200">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+            <h3 className="text-sm font-semibold text-gray-900">
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-2 text-xs font-medium text-orange-600">({unreadCount} new)</span>
+              )}
+            </h3>
             {unreadCount > 0 && (
               <button
                 onClick={markAllAsRead}
@@ -144,8 +149,8 @@ const NotificationBell: React.FC = () => {
             )}
           </div>
 
-          {/* List */}
-          <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+          {/* List — capped at 50vh to prevent covering the page */}
+          <div className="flex-1 overflow-y-auto divide-y divide-gray-50 max-h-[50vh]">
             {notifications.length === 0 && !loading ? (
               <div className="py-10 text-center text-sm text-gray-400">
                 No notifications yet
@@ -167,6 +172,15 @@ const NotificationBell: React.FC = () => {
               </button>
             )}
           </div>
+
+          {/* Footer */}
+          {notifications.length > 0 && (
+            <div className="border-t border-gray-100 px-4 py-2">
+              <p className="text-[11px] text-gray-400 text-center">
+                Showing {notifications.length} notification{notifications.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

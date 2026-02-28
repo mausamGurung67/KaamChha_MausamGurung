@@ -1,5 +1,5 @@
 import React from 'react';
-import { PartyPopper, CreditCard, X } from 'lucide-react';
+import { CheckCircle, CreditCard, X } from 'lucide-react';
 import Button from '../common/Button';
 
 interface CompletionSuccessModalProps {
@@ -19,18 +19,18 @@ const CompletionSuccessModal: React.FC<CompletionSuccessModalProps> = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full overflow-hidden">
         {/* Header */}
-        <div className="relative bg-gradient-to-br from-green-500 to-emerald-600 p-8 text-center">
+        <div className="relative p-6 pb-4 text-center">
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 p-1.5 hover:bg-white/20 rounded-lg transition text-white/80 hover:text-white"
+            className="absolute top-3 right-3 p-1.5 hover:bg-gray-100 rounded-lg transition text-gray-400 hover:text-gray-600"
           >
             <X size={18} />
           </button>
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <PartyPopper size={32} className="text-white" />
+          <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3">
+            <CheckCircle size={28} className="text-orange-500" />
           </div>
-          <h3 className="text-xl font-bold text-white">Congratulations! 🎉</h3>
-          <p className="text-green-100 text-sm mt-2">
+          <h3 className="text-lg font-bold text-gray-900">Job Completed!</h3>
+          <p className="text-gray-500 text-sm mt-1">
             The work has been marked as completed successfully.
           </p>
         </div>
