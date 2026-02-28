@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Bell, Check, CheckCheck } from 'lucide-react';
 import { useNotifications } from '../../hooks/useNotifications';
 import type { Notification } from '../../services/notification.service';
@@ -28,7 +28,55 @@ const timeAgo = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString();
 };
 
-// ── Component ─────────────────────────────────────────
+// ── Memoized notification item ────────────────────────
+
+interface NotificationItemProps {
+  notification: Notification;
+  onRead: (id: string) => void;
+}
+
+const NotificationItem = React.memo<NotificationItemProps>(
+  ({ notification: n, onRead }) => (
+    <button
+      onClick={() => {
+        if (!n.isRead) onRead(n.id);
+      }}
+      className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex gap-3 ${
+        !n.isRead ? 'bg-orange-50/50' : ''
+      }`}
+    >
+      {/* Icon */}
+      <span className="text-lg mt-0.5 shrink-0">
+        {TYPE_ICONS[n.type] || '🔔'}
+      </span>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <p
+            className={`text-sm leading-snug ${
+              !n.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'
+            }`}
+          >
+            {n.title}
+          </p>
+          {!n.isRead && (
+            <span className="mt-1.5 shrink-0 w-2 h-2 bg-orange-500 rounded-full" />
+          )}
+        </div>
+        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
+        <p className="text-[11px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+      </div>
+
+      {/* Read indicator */}
+      {n.isRead && <Check size={14} className="text-gray-300 mt-1 shrink-0" />}
+    </button>
+  ),
+);
+
+NotificationItem.displayName = 'NotificationItem';
+
+// ── Bell component ────────────────────────────────────
 
 const NotificationBell: React.FC = () => {
   const {
@@ -55,11 +103,13 @@ const NotificationBell: React.FC = () => {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const handleItemClick = async (n: Notification) => {
-    if (!n.isRead) {
-      await markAsRead(n.id);
-    }
-  };
+  // Stable callback ref for marking as read
+  const handleRead = useCallback(
+    (id: string) => {
+      markAsRead(id);
+    },
+    [markAsRead],
+  );
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -102,37 +152,7 @@ const NotificationBell: React.FC = () => {
               </div>
             ) : (
               notifications.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => handleItemClick(n)}
-                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex gap-3 ${
-                    !n.isRead ? 'bg-orange-50/50' : ''
-                  }`}
-                >
-                  {/* Icon */}
-                  <span className="text-lg mt-0.5 shrink-0">
-                    {TYPE_ICONS[n.type] || '🔔'}
-                  </span>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <p className={`text-sm leading-snug ${!n.isRead ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
-                        {n.title}
-                      </p>
-                      {!n.isRead && (
-                        <span className="mt-1.5 shrink-0 w-2 h-2 bg-orange-500 rounded-full" />
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-                    <p className="text-[11px] text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
-                  </div>
-
-                  {/* Read indicator */}
-                  {n.isRead && (
-                    <Check size={14} className="text-gray-300 mt-1 shrink-0" />
-                  )}
-                </button>
+                <NotificationItem key={n.id} notification={n} onRead={handleRead} />
               ))
             )}
 
@@ -153,4 +173,4 @@ const NotificationBell: React.FC = () => {
   );
 };
 
-export default NotificationBell;
+export default React.memo(NotificationBell);

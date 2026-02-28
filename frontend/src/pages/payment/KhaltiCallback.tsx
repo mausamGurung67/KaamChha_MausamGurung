@@ -1,23 +1,25 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import { CheckCircle, XCircle, Loader2, ArrowLeft, CreditCard } from 'lucide-react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { XCircle, Loader2, ArrowLeft } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
+import PaymentSuccessModal from '../../components/booking/PaymentSuccessModal';
+import ReviewModal from '../../components/review/ReviewModal';
 import { verifyKhaltiPayment } from '../../services/payment.service';
 import toast from 'react-hot-toast';
 
 type VerificationState = 'loading' | 'success' | 'failed';
+type FlowStep = 'payment-success' | 'review' | 'done';
 
 const KhaltiCallback: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [state, setState] = useState<VerificationState>('loading');
   const [message, setMessage] = useState('');
   const [orderData, setOrderData] = useState<any>(null);
+  const [flowStep, setFlowStep] = useState<FlowStep>('payment-success');
   const verifiedRef = useRef(false);
 
   useEffect(() => {
-    // Khalti redirects back with these query params:
-    // pidx, transaction_id, tidx, amount, total_amount,
-    // mobile, status, purchase_order_id, purchase_order_name
     const pidx = searchParams.get('pidx');
     const orderId = searchParams.get('purchase_order_id');
     const khaltiStatus = searchParams.get('status');
@@ -29,7 +31,6 @@ const KhaltiCallback: React.FC = () => {
       return;
     }
 
-    // Khalti returns status=Completed on success
     if (khaltiStatus && khaltiStatus !== 'Completed') {
       setState('failed');
       const failMsg = khaltiStatus === 'User canceled'
@@ -40,7 +41,6 @@ const KhaltiCallback: React.FC = () => {
       return;
     }
 
-    // Only verify once (StrictMode can double-invoke)
     if (verifiedRef.current) return;
     verifiedRef.current = true;
 
@@ -49,7 +49,6 @@ const KhaltiCallback: React.FC = () => {
         const res = await verifyKhaltiPayment(pidx, orderId);
         if (res.success && res.data) {
           setState('success');
-          setMessage('Payment completed successfully!');
           toast.success('Payment completed successfully!');
           setOrderData(res.data.order);
         } else {
@@ -69,6 +68,8 @@ const KhaltiCallback: React.FC = () => {
     verify();
   }, [searchParams]);
 
+  const goToBookings = () => navigate('/my-bookings');
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -85,62 +86,28 @@ const KhaltiCallback: React.FC = () => {
             </div>
           )}
 
-          {/* Success */}
-          {state === 'success' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-8 text-center">
-                <CheckCircle size={56} className="text-white mx-auto mb-3" />
-                <h2 className="text-2xl font-bold text-white">Payment Successful!</h2>
-                <p className="text-green-100 mt-1 text-sm">{message}</p>
-              </div>
+          {/* Success — Guided modal flow */}
+          {state === 'success' && orderData && flowStep === 'payment-success' && (
+            <PaymentSuccessModal
+              serviceName={orderData.service?.name || 'Service'}
+              amount={Number(orderData.totalAmount)}
+              paymentMethod="Khalti"
+              onLeaveReview={() => setFlowStep('review')}
+              onClose={goToBookings}
+            />
+          )}
 
-              {orderData && (
-                <div className="p-6 space-y-4">
-                  <div className="bg-gray-50 rounded-xl p-4 space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Service</span>
-                      <span className="font-medium text-gray-900">
-                        {orderData.service?.name || '—'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Amount Paid</span>
-                      <span className="font-semibold text-green-600">
-                        NPR {Number(orderData.totalAmount).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Payment Method</span>
-                      <span className="inline-flex items-center gap-1 font-medium text-purple-700">
-                        <CreditCard size={14} /> Khalti
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Transaction ID</span>
-                      <span className="font-mono text-xs text-gray-600">
-                        {orderData.paymentId || '—'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">Booking ID</span>
-                      <span className="font-mono text-xs text-gray-600">
-                        {orderData.id?.slice(-8) || '—'}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Link
-                      to="/my-bookings"
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition text-sm"
-                    >
-                      <ArrowLeft size={16} />
-                      My Bookings
-                    </Link>
-                  </div>
-                </div>
-              )}
-            </div>
+          {state === 'success' && orderData && flowStep === 'review' && (
+            <ReviewModal
+              orderId={orderData.id}
+              serviceName={orderData.service?.name || 'Service'}
+              technicianName={orderData.technician?.profile?.name || orderData.technician?.name || 'Technician'}
+              onClose={goToBookings}
+              onReviewSubmitted={() => {
+                // ReviewModal shows its own success screen, then auto-closes after 2s
+                // which triggers onClose → goToBookings
+              }}
+            />
           )}
 
           {/* Failed */}
@@ -154,13 +121,13 @@ const KhaltiCallback: React.FC = () => {
 
               <div className="p-6">
                 <div className="flex gap-3">
-                  <Link
-                    to="/my-bookings"
+                  <button
+                    onClick={goToBookings}
                     className="flex-1 flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition text-sm"
                   >
                     <ArrowLeft size={16} />
                     Back to Bookings
-                  </Link>
+                  </button>
                 </div>
                 <p className="text-xs text-gray-400 text-center mt-4">
                   If you were charged, the amount will be refunded automatically. Contact support if the issue persists.

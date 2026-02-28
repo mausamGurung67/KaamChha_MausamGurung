@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ClipboardList,
   Clock,
@@ -14,6 +15,7 @@ import {
   Camera,
   UserCheck,
   FileText,
+  MessageSquare,
 } from 'lucide-react';
 import {
   listBookings,
@@ -42,6 +44,7 @@ const statusLabels: Record<string, string> = {
 };
 
 const TechnicianBookings: React.FC = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -286,6 +289,19 @@ const TechnicianBookings: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 flex-shrink-0">
+                  {/* Chat icon for active bookings */}
+                  {['ACCEPTED', 'IN_PROGRESS', 'COMPLETED_BY_TECHNICIAN'].includes(b.status) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate('/technician/chat', { state: { bookingId: b.id } });
+                      }}
+                      className="p-2 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-600 transition-colors"
+                      title={`Chat with ${b.customer?.profile?.name || 'Customer'}`}
+                    >
+                      <MessageSquare size={16} />
+                    </button>
+                  )}
                   <div className="text-right">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${ORDER_STATUS_COLORS[b.status as keyof typeof ORDER_STATUS_COLORS] || 'bg-gray-100 text-gray-600'}`}>
                       {getStatusIcon(b.status)}
@@ -301,14 +317,28 @@ const TechnicianBookings: React.FC = () => {
               {selectedBooking?.id === b.id && (
                 <div className="border-t border-gray-100 p-4 space-y-4">
                   {/* Customer info */}
-                  <div className="flex items-center gap-3 bg-orange-50 rounded-lg p-3">
-                    <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
-                      {b.customer?.profile?.name?.[0]?.toUpperCase() || 'C'}
+                  <div className="flex items-center justify-between bg-orange-50 rounded-lg p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 bg-orange-500 text-white rounded-full flex items-center justify-center text-sm font-semibold">
+                        {b.customer?.profile?.name?.[0]?.toUpperCase() || 'C'}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{b.customer?.profile?.name || 'Customer'}</p>
+                        <p className="text-xs text-gray-500">{b.customer?.profile?.phone || b.customer?.email}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">{b.customer?.profile?.name || 'Customer'}</p>
-                      <p className="text-xs text-gray-500">{b.customer?.profile?.phone || b.customer?.email}</p>
-                    </div>
+                    {['ACCEPTED', 'IN_PROGRESS', 'COMPLETED_BY_TECHNICIAN'].includes(b.status) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate('/technician/chat', { state: { bookingId: b.id } });
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded-lg transition-colors"
+                      >
+                        <MessageSquare size={14} />
+                        Chat
+                      </button>
+                    )}
                   </div>
 
                   {/* Location */}

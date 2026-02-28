@@ -367,8 +367,7 @@ model Notification {
 
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, isRead])
-  @@index([userId, createdAt])
-  @@index([createdAt])
+  // Single composite index covers: list by user (sorted), unread count, and mark-read queries
+  @@index([userId, isRead, createdAt(sort: Desc)])
 }
 

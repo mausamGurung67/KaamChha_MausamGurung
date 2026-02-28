@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MessageSquare, Loader2, AlertTriangle, ArrowLeft, Search } from 'lucide-react';
 import ChatWindow from '../../components/chat/ChatWindow';
 import { listBookings, type Booking } from '../../services/booking.service';
@@ -6,6 +7,7 @@ import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import toast from 'react-hot-toast';
 
 const ChatPage: React.FC = () => {
+  const location = useLocation();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -17,9 +19,26 @@ const ChatPage: React.FC = () => {
       setLoading(true);
       setError('');
       try {
-        const res = await listBookings({ status: 'ACCEPTED', limit: 100 });
-        if (res.success && res.data) {
-          setBookings(res.data.orders);
+        // Fetch all active bookings (ACCEPTED, IN_PROGRESS, COMPLETED_BY_TECHNICIAN)
+        const statuses: Array<'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED_BY_TECHNICIAN'> = [
+          'ACCEPTED', 'IN_PROGRESS', 'COMPLETED_BY_TECHNICIAN',
+        ];
+        const results = await Promise.all(
+          statuses.map((status) => listBookings({ status, limit: 100 }))
+        );
+        const allOrders = results.flatMap((r) => (r.success && r.data ? r.data.orders : []));
+        // Deduplicate by id just in case
+        const unique = Array.from(new Map(allOrders.map((o) => [o.id, o])).values());
+        if (unique.length > 0 || results.some((r) => r.success)) {
+          setBookings(unique);
+          // Auto-select booking if navigated with bookingId in state
+          const stateBookingId = (location.state as { bookingId?: string })?.bookingId;
+          if (stateBookingId) {
+            const match = unique.find((b) => b.id === stateBookingId);
+            if (match) setSelected(match);
+            // Clear navigation state so back-and-forward doesn't re-select
+            window.history.replaceState({}, document.title);
+          }
         } else {
           setError('Failed to load bookings');
           toast.error('Failed to load chat bookings');
@@ -118,7 +137,7 @@ const ChatPage: React.FC = () => {
         <div className="text-center py-16">
           <MessageSquare className="mx-auto text-gray-300 mb-3" size={40} />
           <p className="text-gray-500 text-sm">
-            {search ? 'No matching conversations' : 'No ACCEPTED bookings to chat about'}
+            {search ? 'No matching conversations' : 'No active bookings to chat about'}
           </p>
         </div>
       ) : (

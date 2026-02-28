@@ -21,11 +21,17 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Stable dependency — only reconnect when user identity changes, not object ref
+  const userId = user?.id ?? null;
+
   useEffect(() => {
     // Only connect when user is logged in
-    if (!user) {
+    if (!userId) {
       setSocket((prev) => {
         if (prev) {
+          prev.off('connect');
+          prev.off('disconnect');
+          prev.off('connect_error');
           prev.disconnect();
         }
         return null;
@@ -44,29 +50,36 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       reconnectionDelay: 2000,
     });
 
-    s.on('connect', () => {
+    const onConnect = () => {
       console.log('[Socket] Connected:', s.id);
       setIsConnected(true);
-    });
+    };
 
-    s.on('disconnect', (reason) => {
+    const onDisconnect = (reason: string) => {
       console.log('[Socket] Disconnected:', reason);
       setIsConnected(false);
-    });
+    };
 
-    s.on('connect_error', (err) => {
+    const onConnectError = (err: Error) => {
       console.error('[Socket] Connection error:', err.message);
       setIsConnected(false);
-    });
+    };
+
+    s.on('connect', onConnect);
+    s.on('disconnect', onDisconnect);
+    s.on('connect_error', onConnectError);
 
     setSocket(s);
 
     return () => {
+      s.off('connect', onConnect);
+      s.off('disconnect', onDisconnect);
+      s.off('connect_error', onConnectError);
       s.disconnect();
       setSocket(null);
       setIsConnected(false);
     };
-  }, [user]);
+  }, [userId]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

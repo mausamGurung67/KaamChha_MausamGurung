@@ -59,7 +59,8 @@ export const createNotification = async (
 };
 
 /**
- * Convenience: notify multiple users at once.
+ * Batch-insert notifications for multiple users using a single DB call,
+ * then emit via Socket.IO per user room.
  */
 export const notifyMany = async (
   userIds: string[],
@@ -68,11 +69,40 @@ export const notifyMany = async (
   message: string,
   data?: Record<string, unknown>,
 ): Promise<void> => {
-  await Promise.allSettled(
-    userIds.map((userId) =>
-      createNotification({ userId, type, title, message, data }),
-    ),
-  );
+  if (userIds.length === 0) return;
+
+  try {
+    // Single batch insert instead of N individual inserts
+    const records = userIds.map((userId) => ({
+      userId,
+      type,
+      title,
+      message,
+      data: data ? (data as any) : undefined,
+    }));
+
+    await prisma.notification.createMany({ data: records });
+
+    // Emit to each user's room — no DB overhead per emit
+    try {
+      const io = getIO();
+      const now = new Date().toISOString();
+      for (const userId of userIds) {
+        io.to(`user:${userId}`).emit('notification', {
+          type,
+          title,
+          message,
+          data: data ?? null,
+          isRead: false,
+          createdAt: now,
+        });
+      }
+    } catch {
+      // socket emission must not break the flow
+    }
+  } catch (err) {
+    console.error('[Notification] Batch create failed:', err);
+  }
 };
 
 // ── Query helpers ─────────────────────────────────────

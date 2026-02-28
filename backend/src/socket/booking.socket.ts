@@ -47,9 +47,14 @@ export const registerBookingHandlers = (io: Server, socket: AuthenticatedSocket)
         return respond(false, 'Booking not found');
       }
 
-      // ── Status check ──
-      if (order.status !== OrderStatus.ACCEPTED) {
-        return respond(false, `Cannot join room — booking status is ${order.status}, expected ACCEPTED`);
+      // ── Status check — allow chat for all active booking statuses ──
+      const chatAllowedStatuses: OrderStatus[] = [
+        OrderStatus.ACCEPTED,
+        OrderStatus.IN_PROGRESS,
+        OrderStatus.COMPLETED_BY_TECHNICIAN,
+      ];
+      if (!chatAllowedStatuses.includes(order.status as OrderStatus)) {
+        return respond(false, `Cannot join room — booking status is ${order.status}, chat is only available for active bookings`);
       }
 
       // ── Authorization check ──

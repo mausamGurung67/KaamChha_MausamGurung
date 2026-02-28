@@ -15,7 +15,10 @@ import {
   UserCheck,
   Star,
   CreditCard,
+  MessageSquare,
+  X,
 } from 'lucide-react';
+import ChatWindow from '../../components/chat/ChatWindow';
 import Navbar from '../../components/common/Navbar';
 import {
   listBookings,
@@ -28,6 +31,7 @@ import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { BookingCardSkeleton } from '../../components/common/Skeleton';
 import PaymentModal from '../../components/payment/PaymentModal';
 import ReviewModal from '../../components/review/ReviewModal';
+import CompletionSuccessModal from '../../components/booking/CompletionSuccessModal';
 import toast from 'react-hot-toast';
 import { getOrderReview, type Review } from '../../services/review.service';
 
@@ -54,6 +58,8 @@ const MyBookings: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [paymentBooking, setPaymentBooking] = useState<Booking | null>(null);
   const [reviewBooking, setReviewBooking] = useState<Booking | null>(null);
+  const [chatBooking, setChatBooking] = useState<Booking | null>(null);
+  const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
   const [orderReviews, setOrderReviews] = useState<Record<string, Review | null>>({});
 
   // Show success banner if redirected from booking
@@ -134,7 +140,13 @@ const MyBookings: React.FC = () => {
     try {
       await confirmCompletion(id);
       toast.success('Service completion confirmed!');
-      fetchBookings();
+      // Update the booking locally instead of refetching everything
+      const updatedBooking = bookings.find((b) => b.id === id);
+      if (updatedBooking) {
+        const completed = { ...updatedBooking, status: 'COMPLETED' as BookingStatus };
+        setBookings((prev) => prev.map((b) => (b.id === id ? completed : b)));
+        setCompletedBooking(completed);
+      }
       setSelectedBooking(null);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to confirm completion');
@@ -277,6 +289,19 @@ const MyBookings: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-3 flex-shrink-0">
+                      {/* Chat icon for active bookings */}
+                      {['ACCEPTED', 'IN_PROGRESS', 'COMPLETED_BY_TECHNICIAN'].includes(b.status) && b.technician && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setChatBooking(b);
+                          }}
+                          className="p-2 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-600 transition-colors"
+                          title={`Chat with ${b.technician?.profile?.name || 'Technician'}`}
+                        >
+                          <MessageSquare size={16} />
+                        </button>
+                      )}
                       <div className="text-right">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full ${ORDER_STATUS_COLORS[b.status as keyof typeof ORDER_STATUS_COLORS] || 'bg-gray-100 text-gray-600'}`}>
                           {getStatusIcon(b.status)}
@@ -422,6 +447,20 @@ const MyBookings: React.FC = () => {
         </div>
       </div>
 
+      {/* Completion Success Modal — shown after confirming completion */}
+      {completedBooking && (
+        <CompletionSuccessModal
+          serviceName={completedBooking.service.name}
+          amount={Number(completedBooking.totalAmount)}
+          onPayNow={() => {
+            const booking = completedBooking;
+            setCompletedBooking(null);
+            setPaymentBooking(booking);
+          }}
+          onClose={() => setCompletedBooking(null)}
+        />
+      )}
+
       {/* Payment Modal */}
       {paymentBooking && (
         <PaymentModal
@@ -441,11 +480,38 @@ const MyBookings: React.FC = () => {
           technicianName={reviewBooking.technician?.profile?.name || 'Technician'}
           onClose={() => setReviewBooking(null)}
           onReviewSubmitted={(data) => {
-            setOrderReviews((prev) => ({ ...prev, [reviewBooking.id]: data?.review ?? { rating: data?.review?.rating || 5, id: 'temp' } }));
+            setOrderReviews((prev) => ({
+              ...prev,
+              [reviewBooking.id]: data?.review ?? { rating: data?.review?.rating || 5, id: 'temp' } as any,
+            }));
             setReviewBooking(null);
-            fetchBookings();
           }}
         />
+      )}
+
+      {/* Chat Modal */}
+      {chatBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setChatBooking(null)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 h-[600px] max-h-[80vh] flex flex-col overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 bg-orange-500 text-white shrink-0">
+              <div>
+                <h3 className="text-sm font-semibold">
+                  {chatBooking.service?.name} — {chatBooking.technician?.profile?.name || 'Technician'}
+                </h3>
+                <p className="text-xs text-orange-100 mt-0.5">{statusLabels[chatBooking.status] || chatBooking.status}</p>
+              </div>
+              <button
+                onClick={() => setChatBooking(null)}
+                className="p-1.5 hover:bg-orange-600 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 min-h-0">
+              <ChatWindow bookingId={chatBooking.id} compact />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

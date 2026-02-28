@@ -14,21 +14,26 @@ const FloatingChat: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Booking | null>(null);
 
-  // Fetch ACCEPTED bookings on mount
+  // Fetch all active bookings (ACCEPTED, IN_PROGRESS, COMPLETED_BY_TECHNICIAN) on mount
   useEffect(() => {
-    const fetch = async () => {
+    const fetchActive = async () => {
       try {
-        const res = await listBookings({ status: 'ACCEPTED', limit: 50 });
-        if (res.success && res.data) {
-          setBookings(res.data.orders);
-        }
+        const statuses: Array<'ACCEPTED' | 'IN_PROGRESS' | 'COMPLETED_BY_TECHNICIAN'> = [
+          'ACCEPTED', 'IN_PROGRESS', 'COMPLETED_BY_TECHNICIAN',
+        ];
+        const results = await Promise.all(
+          statuses.map((status) => listBookings({ status, limit: 50 }))
+        );
+        const allOrders = results.flatMap((r) => (r.success && r.data ? r.data.orders : []));
+        const unique = Array.from(new Map(allOrders.map((o) => [o.id, o])).values());
+        setBookings(unique);
       } catch {
         // silent — widget just won't show
       } finally {
         setLoading(false);
       }
     };
-    fetch();
+    fetchActive();
   }, []);
 
   // Don't render anything if no accepted bookings
