@@ -29,6 +29,7 @@ import {
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { TabBarSkeleton, BookingCardSkeleton } from '../../components/common/Skeleton';
+import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
 const statusLabels: Record<string, string> = {
@@ -229,9 +230,9 @@ const TechnicianBookings: React.FC = () => {
         <div className="text-center py-20">
           <AlertTriangle size={48} className="text-red-400 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">{error}</p>
-          <button onClick={fetchBookings} className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium">
+          <Button variant="primary" size="sm" onClick={fetchBookings}>
             <RefreshCw size={16} /> Retry
-          </button>
+          </Button>
         </div>
       ) : filteredBookings.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
@@ -328,16 +329,17 @@ const TechnicianBookings: React.FC = () => {
                       </div>
                     </div>
                     {['ACCEPTED', 'IN_PROGRESS', 'COMPLETED_BY_TECHNICIAN'].includes(b.status) && (
-                      <button
+                      <Button
+                        variant="primary"
+                        size="xs"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigate('/technician/chat', { state: { bookingId: b.id } });
                         }}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-medium rounded-lg transition-colors"
                       >
                         <MessageSquare size={14} />
                         Chat
-                      </button>
+                      </Button>
                     )}
                   </div>
 
@@ -376,47 +378,57 @@ const TechnicianBookings: React.FC = () => {
                     {/* PENDING: Accept or Reject */}
                     {b.status === 'PENDING' && (
                       <>
-                        <button
+                        <Button
+                          variant="success"
+                          size="sm"
+                          className="flex-1 py-2.5"
                           onClick={(e) => { e.stopPropagation(); handleAccept(b.id); }}
                           disabled={actionLoading === b.id}
-                          className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2.5 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+                          isLoading={actionLoading === b.id}
                         >
-                          {actionLoading === b.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                          <CheckCircle size={14} />
                           Accept
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="outline-danger"
+                          size="sm"
+                          className="flex-1 py-2.5"
                           onClick={(e) => { e.stopPropagation(); setShowRejectModal(b.id); }}
                           disabled={actionLoading === b.id}
-                          className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium py-2.5 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                           <XCircle size={14} />
                           Reject
-                        </button>
+                        </Button>
                       </>
                     )}
 
                     {/* ACCEPTED/ASSIGNED: Start Work */}
                     {['ACCEPTED', 'ASSIGNED'].includes(b.status) && (
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="flex-1 py-2.5"
                         onClick={(e) => { e.stopPropagation(); handleStartWork(b.id); }}
                         disabled={actionLoading === b.id}
-                        className="flex-1 bg-purple-500 hover:bg-purple-600 text-white text-sm font-medium py-2.5 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+                        isLoading={actionLoading === b.id}
                       >
-                        {actionLoading === b.id ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+                        <Play size={14} />
                         Start Work
-                      </button>
+                      </Button>
                     )}
 
                     {/* IN_PROGRESS: Mark as Complete */}
                     {b.status === 'IN_PROGRESS' && (
-                      <button
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="flex-1 py-2.5"
                         onClick={(e) => { e.stopPropagation(); setShowCompleteModal(b.id); }}
                         disabled={actionLoading === b.id}
-                        className="flex-1 bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium py-2.5 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
                       >
                         <Camera size={14} />
                         Mark as Completed
-                      </button>
+                      </Button>
                     )}
 
                     {/* COMPLETED_BY_TECHNICIAN: Waiting for customer */}
@@ -448,20 +460,25 @@ const TechnicianBookings: React.FC = () => {
               rows={3}
             />
             <div className="flex gap-2 mt-4">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex-1 py-2.5"
                 onClick={() => setShowRejectModal(null)}
-                className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                className="flex-1 py-2.5"
                 onClick={() => handleReject(showRejectModal)}
                 disabled={actionLoading === showRejectModal}
-                className="flex-1 bg-red-500 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-red-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                isLoading={actionLoading === showRejectModal}
               >
-                {actionLoading === showRejectModal ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                <XCircle size={14} />
                 Reject
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -588,7 +605,10 @@ const TechnicianBookings: React.FC = () => {
               </div>
             )}
             <div className="flex gap-2 mt-4">
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
+                className="flex-1 py-2.5"
                 onClick={() => {
                   setShowCompleteModal(null);
                   setCompleteNotes('');
@@ -598,18 +618,20 @@ const TechnicianBookings: React.FC = () => {
                   setAfterPreviews([]);
                   setUploadProgress('');
                 }}
-                className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                className="flex-1 py-2.5"
                 onClick={() => handleComplete(showCompleteModal)}
                 disabled={actionLoading === showCompleteModal}
-                className="flex-1 bg-teal-500 text-white py-2.5 rounded-lg text-sm font-medium hover:bg-teal-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                isLoading={actionLoading === showCompleteModal}
               >
-                {actionLoading === showCompleteModal ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                <CheckCircle size={14} />
                 Submit
-              </button>
+              </Button>
             </div>
           </div>
         </div>

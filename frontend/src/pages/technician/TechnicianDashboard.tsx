@@ -18,6 +18,7 @@ import { TechDashboardSkeleton } from '../../components/common/Skeleton';
 import { useAuth } from '../../hooks/useAuth';
 import { getTechnicianRating } from '../../services/review.service';
 import { useReviewSocket } from '../../hooks/useReviewSocket';
+import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
 const TechnicianDashboard: React.FC = () => {
@@ -80,13 +81,10 @@ const TechnicianDashboard: React.FC = () => {
           <AlertTriangle size={48} className="text-red-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
           <p className="text-gray-500 mb-4">{error}</p>
-          <button
-            onClick={fetchDashboard}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition"
-          >
+          <Button variant="primary" size="sm" onClick={fetchDashboard}>
             <RefreshCw size={16} />
             Try Again
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -102,13 +100,10 @@ const TechnicianDashboard: React.FC = () => {
           <p className="text-gray-500 mb-6 leading-relaxed">
             You need to submit your KYC documents before you can access your dashboard and start accepting service requests.
           </p>
-          <button
-            onClick={() => navigate('/auth/technician-kyc')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition shadow-md"
-          >
+          <Button variant="primary" size="lg" onClick={() => navigate('/auth/technician-kyc')}>
             Submit KYC Documents
             <ArrowRight size={18} />
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -169,13 +164,10 @@ const TechnicianDashboard: React.FC = () => {
               Please ensure your documents are clear and legible, then try again.
             </p>
           </div>
-          <button
-            onClick={() => navigate('/auth/technician-kyc')}
-            className="inline-flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition shadow-md"
-          >
+          <Button variant="primary" size="lg" onClick={() => navigate('/auth/technician-kyc')}>
             <RefreshCw size={18} />
             Resubmit KYC Documents
-          </button>
+          </Button>
         </div>
       </div>
     );

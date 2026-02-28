@@ -17,6 +17,7 @@ import {
   type TechnicianRating,
 } from '../../services/review.service';
 import { useReviewSocket } from '../../hooks/useReviewSocket';
+import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
 const TechnicianReviews: React.FC = () => {
@@ -124,13 +125,10 @@ const TechnicianReviews: React.FC = () => {
           <AlertTriangle size={48} className="text-red-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Something went wrong</h3>
           <p className="text-gray-500 mb-4">{error}</p>
-          <button
-            onClick={fetchReviews}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition"
-          >
+          <Button variant="primary" size="sm" onClick={fetchReviews}>
             <RefreshCw size={16} />
             Try Again
-          </button>
+          </Button>
         </div>
       </div>
     );

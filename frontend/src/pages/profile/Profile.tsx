@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import Navbar from '../../components/common/Navbar';
 import { getProfile, updateProfile, type UpdateProfilePayload } from '../../services/profile.service';
 import { STORAGE_KEYS } from '../../utils/constants';
+import Button from '../../components/common/Button';
 
 const Profile: React.FC = () => {
   const { user, setUser } = useAuth();
@@ -123,14 +124,16 @@ const Profile: React.FC = () => {
                 </div>
               </div>
               {!editing && (
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={startEditing}
                   disabled={loadingProfile}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100 text-sm font-medium transition-colors"
+                  isLoading={loadingProfile}
                 >
-                  {loadingProfile ? <Loader2 size={16} className="animate-spin" /> : <Pencil size={16} />}
+                  <Pencil size={16} />
                   Edit Profile
-                </button>
+                </Button>
               )}
             </div>
           </div>
@@ -193,21 +196,23 @@ const Profile: React.FC = () => {
 
                 {/* Actions */}
                 <div className="flex justify-end gap-3 pt-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setEditing(false)}
-                    className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
                     onClick={handleSave}
                     disabled={saving}
-                    className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                    isLoading={saving}
                   >
-                    {saving && <Loader2 size={16} className="animate-spin" />}
                     Save Changes
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (

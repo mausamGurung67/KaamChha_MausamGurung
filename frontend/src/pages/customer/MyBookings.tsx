@@ -32,6 +32,7 @@ import { BookingCardSkeleton } from '../../components/common/Skeleton';
 import PaymentModal from '../../components/payment/PaymentModal';
 import ReviewModal from '../../components/review/ReviewModal';
 import CompletionSuccessModal from '../../components/booking/CompletionSuccessModal';
+import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 import { getOrderReview, type Review } from '../../services/review.service';
 
@@ -229,9 +230,9 @@ const MyBookings: React.FC = () => {
             <div className="text-center py-20">
               <AlertTriangle size={48} className="text-red-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">{error}</p>
-              <button onClick={fetchBookings} className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium">
+              <Button variant="primary" size="sm" onClick={fetchBookings}>
                 <RefreshCw size={16} /> Retry
-              </button>
+              </Button>
             </div>
           ) : bookings.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
@@ -388,32 +389,39 @@ const MyBookings: React.FC = () => {
                       {/* Actions */}
                       <div className="flex gap-2 pt-2">
                         {b.status === 'COMPLETED_BY_TECHNICIAN' && (
-                          <button
+                          <Button
+                            variant="success"
+                            size="sm"
+                            className="flex-1 py-2.5"
                             onClick={(e) => { e.stopPropagation(); handleConfirmCompletion(b.id); }}
                             disabled={actionLoading === b.id}
-                            className="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2.5 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+                            isLoading={actionLoading === b.id}
                           >
-                            {actionLoading === b.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                            <CheckCircle size={14} />
                             Confirm Completion
-                          </button>
+                          </Button>
                         )}
                         {b.status === 'COMPLETED' && b.paymentStatus === 'PENDING' && (
-                          <button
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="flex-1 py-2.5"
                             onClick={(e) => { e.stopPropagation(); setPaymentBooking(b); }}
-                            className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-2"
                           >
                             <CreditCard size={14} />
                             Pay Now — NPR {Number(b.totalAmount).toLocaleString()}
-                          </button>
+                          </Button>
                         )}
                         {b.paymentStatus === 'PAID' && !orderReviews[b.id] && (
-                          <button
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="flex-1 py-2.5"
                             onClick={(e) => { e.stopPropagation(); setReviewBooking(b); }}
-                            className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-2"
                           >
                             <Star size={14} />
                             Leave Review
-                          </button>
+                          </Button>
                         )}
                         {b.paymentStatus === 'PAID' && orderReviews[b.id] && (
                           <div className="flex-1 bg-amber-50 border border-amber-200 text-amber-700 text-sm font-medium py-2.5 rounded-lg flex items-center justify-center gap-2">
@@ -428,14 +436,17 @@ const MyBookings: React.FC = () => {
                           </div>
                         )}
                         {['PENDING', 'ACCEPTED', 'CONFIRMED'].includes(b.status) && (
-                          <button
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            className="flex-1 py-2.5"
                             onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }}
                             disabled={actionLoading === b.id}
-                            className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium py-2.5 rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2"
+                            isLoading={actionLoading === b.id}
                           >
-                            {actionLoading === b.id ? <Loader2 size={14} className="animate-spin" /> : <XCircle size={14} />}
+                            <XCircle size={14} />
                             Cancel Booking
-                          </button>
+                          </Button>
                         )}
                       </div>
                     </div>

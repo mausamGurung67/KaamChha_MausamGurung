@@ -21,6 +21,7 @@ import {
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { DashboardStatsSkeleton, BookingTableSkeleton } from '../../components/common/Skeleton';
+import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
 const statusLabels: Record<string, string> = {
@@ -180,12 +181,9 @@ const AdminBookings: React.FC = () => {
             ))}
           </select>
         </div>
-        <button
-          onClick={fetchBookings}
-          className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm text-gray-700 font-medium transition flex items-center gap-2"
-        >
+        <Button variant="secondary" size="md" onClick={fetchBookings}>
           <RefreshCw size={14} /> Refresh
-        </button>
+        </Button>
       </div>
 
       {/* Table */}
@@ -195,9 +193,9 @@ const AdminBookings: React.FC = () => {
         <div className="text-center py-20">
           <AlertTriangle size={48} className="text-red-400 mx-auto mb-4" />
           <p className="text-gray-500 mb-4">{error}</p>
-          <button onClick={fetchBookings} className="inline-flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium">
+          <Button variant="primary" size="sm" onClick={fetchBookings}>
             <RefreshCw size={16} /> Retry
-          </button>
+          </Button>
         </div>
       ) : filteredBookings.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-gray-100">
@@ -300,13 +298,15 @@ const AdminBookings: React.FC = () => {
                     {/* Admin actions — monitoring only, cancel for moderation */}
                     <div className="flex gap-2 pt-2 flex-wrap">
                       {!['COMPLETED', 'CANCELLED', 'REJECTED'].includes(b.status) && (
-                        <button
+                        <Button
+                          variant="outline-danger"
+                          size="xs"
                           onClick={(e) => { e.stopPropagation(); handleCancel(b.id); }}
                           disabled={actionLoading === b.id}
-                          className="px-4 py-2 bg-white border border-red-200 text-red-600 hover:bg-red-50 text-xs font-medium rounded-lg transition disabled:opacity-50 flex items-center gap-1.5"
+                          isLoading={actionLoading === b.id}
                         >
                           <XCircle size={13} /> Cancel
-                        </button>
+                        </Button>
                       )}
                     </div>
                   </div>

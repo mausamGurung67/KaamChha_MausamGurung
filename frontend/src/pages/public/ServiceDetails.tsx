@@ -21,6 +21,7 @@ import { getServiceById, type ServiceItem } from '../../services/service.service
 import { createBooking } from '../../services/booking.service';
 import { ServiceDetailSkeleton } from '../../components/common/Skeleton';
 import ReviewList from '../../components/review/ReviewList';
+import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
 const ServiceDetails: React.FC = () => {
@@ -500,14 +501,17 @@ const ServiceDetails: React.FC = () => {
                       {bookingError}
                     </p>
                   )}
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
                     onClick={handleBookService}
                     disabled={booking}
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3.5 rounded-xl transition-colors shadow-sm shadow-orange-500/20 hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    isLoading={booking}
+                    className="rounded-xl py-3.5"
                   >
-                    {booking && <Loader2 size={18} className="animate-spin" />}
-                    {booking ? 'Booking...' : 'Book Service'}
-                  </button>
+                    Book Service
+                  </Button>
                 </div>
 
                 {/* Service Info */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { CheckCircle, Star, X } from 'lucide-react';
+import Button from '../common/Button';
 
 interface PaymentSuccessModalProps {
   serviceName: string;
@@ -58,19 +59,13 @@ const PaymentSuccessModal: React.FC<PaymentSuccessModalProps> = ({
           </p>
 
           <div className="space-y-2">
-            <button
-              onClick={onLeaveReview}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition"
-            >
+            <Button variant="primary" size="lg" fullWidth onClick={onLeaveReview}>
               <Star size={18} />
               Leave Review
-            </button>
-            <button
-              onClick={onClose}
-              className="w-full py-3 text-gray-600 hover:text-gray-900 font-medium rounded-xl transition text-sm hover:bg-gray-50"
-            >
+            </Button>
+            <Button variant="ghost" size="lg" fullWidth onClick={onClose}>
               Maybe later
-            </button>
+            </Button>
           </div>
         </div>
       </div>

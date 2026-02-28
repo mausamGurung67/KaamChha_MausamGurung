@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, Loader2, Send, CheckCircle } from 'lucide-react';
 import { submitReview } from '../../services/review.service';
+import Button from '../common/Button';
 import toast from 'react-hot-toast';
 
 interface ReviewModalProps {
@@ -166,10 +167,13 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
 
         {/* Footer */}
         <div className="px-6 pb-6">
-          <button
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
             onClick={handleSubmit}
             disabled={rating === 0 || loading}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-xl"
           >
             {loading ? (
               <>
@@ -182,7 +186,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
                 Submit Review
               </>
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

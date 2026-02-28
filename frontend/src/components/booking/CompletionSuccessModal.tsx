@@ -1,5 +1,6 @@
 import React from 'react';
 import { PartyPopper, CreditCard, X } from 'lucide-react';
+import Button from '../common/Button';
 
 interface CompletionSuccessModalProps {
   serviceName: string;
@@ -50,19 +51,13 @@ const CompletionSuccessModal: React.FC<CompletionSuccessModalProps> = ({
           </p>
 
           <div className="space-y-2">
-            <button
-              onClick={onPayNow}
-              className="w-full flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition"
-            >
+            <Button variant="primary" size="lg" fullWidth onClick={onPayNow}>
               <CreditCard size={18} />
               Pay Now
-            </button>
-            <button
-              onClick={onClose}
-              className="w-full py-3 text-gray-600 hover:text-gray-900 font-medium rounded-xl transition text-sm hover:bg-gray-50"
-            >
+            </Button>
+            <Button variant="ghost" size="lg" fullWidth onClick={onClose}>
               I'll pay later
-            </button>
+            </Button>
           </div>
         </div>
       </div>

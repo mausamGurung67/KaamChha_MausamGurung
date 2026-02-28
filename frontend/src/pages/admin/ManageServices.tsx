@@ -25,6 +25,7 @@ import {
 } from '../../services/service.service';
 import { listCategories, type Category } from '../../services/category.service';
 import { UserTableSkeleton } from '../../components/common/Skeleton';
+import Button from '../../components/common/Button';
 
 const ManageServices: React.FC = () => {
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -246,12 +247,9 @@ const ManageServices: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Manage Services</h1>
           <p className="text-gray-500 mt-1">Add, edit, and manage services on the platform</p>
         </div>
-        <button
-          onClick={openAddForm}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm"
-        >
+        <Button variant="primary" size="md" onClick={openAddForm}>
           <Plus size={18} /> Add Service
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
@@ -622,23 +620,24 @@ const ManageServices: React.FC = () => {
                 </div>
               </div>
 
-              {/* Submit */}
               <div className="flex justify-end gap-3 pt-2">
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
+                  variant="primary"
+                  size="md"
                   disabled={formLoading || imageUploading}
-                  className="px-5 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium disabled:opacity-50 flex items-center gap-2"
+                  isLoading={formLoading}
                 >
-                  {formLoading && <Loader2 size={16} className="animate-spin" />}
                   {editingService ? 'Update Service' : 'Create Service'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

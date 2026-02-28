@@ -34,12 +34,17 @@ function App() {
               borderRadius: '12px',
               padding: '12px 16px',
               fontSize: '14px',
+              fontFamily: 'Satoshi, sans-serif',
             },
             success: {
               style: {
-                background: '#f0fdf4',
-                color: '#15803d',
-                border: '1px solid #bbf7d0',
+                background: '#fff7ed',
+                color: '#c2410c',
+                border: '1px solid #fed7aa',
+              },
+              iconTheme: {
+                primary: '#f97316',
+                secondary: '#fff7ed',
               },
             },
             error: {
@@ -47,6 +52,10 @@ function App() {
                 background: '#fef2f2',
                 color: '#b91c1c',
                 border: '1px solid #fecaca',
+              },
+              iconTheme: {
+                primary: '#dc2626',
+                secondary: '#fef2f2',
               },
             },
           }}

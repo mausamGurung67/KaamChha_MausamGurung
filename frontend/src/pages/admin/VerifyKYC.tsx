@@ -15,6 +15,7 @@ import {
   type KYCEntry,
 } from '../../services/admin.service';
 import { KYCTableSkeleton } from '../../components/common/Skeleton';
+import Button from '../../components/common/Button';
 
 type KYCTab = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
 
@@ -321,49 +322,45 @@ const VerifyKYC: React.FC = () => {
               <div className="flex items-center justify-end gap-3 p-5 border-t border-gray-100">
                 {!showRejectForm ? (
                   <>
-                    <button
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
                       onClick={() => setShowRejectForm(true)}
                       disabled={actionLoading}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 text-sm font-medium disabled:opacity-50"
                     >
                       <ShieldX size={16} /> Reject
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="success"
+                      size="sm"
                       onClick={() => handleVerify(selectedKYC.id, 'APPROVED')}
                       disabled={actionLoading}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 text-sm font-medium disabled:opacity-50"
+                      isLoading={actionLoading}
                     >
-                      {actionLoading ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <ShieldCheck size={16} />
-                      )}
-                      Approve
-                    </button>
+                      <ShieldCheck size={16} /> Approve
+                    </Button>
                   </>
                 ) : (
                   <>
-                    <button
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       onClick={() => {
                         setShowRejectForm(false);
                         setRejectionReason('');
                       }}
-                      className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 text-sm font-medium"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleVerify(selectedKYC.id, 'REJECTED')}
                       disabled={actionLoading || !rejectionReason.trim()}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm font-medium disabled:opacity-50"
+                      isLoading={actionLoading}
                     >
-                      {actionLoading ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <ShieldX size={16} />
-                      )}
-                      Confirm Reject
-                    </button>
+                      <ShieldX size={16} /> Confirm Reject
+                    </Button>
                   </>
                 )}
               </div>

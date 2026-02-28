@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, CreditCard, Loader2, Shield, ExternalLink } from 'lucide-react';
 import { initiateKhaltiPayment, initiateEsewaPayment } from '../../services/payment.service';
+import Button from '../common/Button';
 import toast from 'react-hot-toast';
 
 interface PaymentModalProps {
@@ -168,10 +169,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
 
         {/* Footer */}
         <div className="px-6 pb-6 space-y-3">
-          <button
+          <Button
+            variant="primary"
+            size="lg"
+            fullWidth
             onClick={handlePay}
             disabled={!selectedMethod || loading}
-            className="w-full flex items-center justify-center gap-2 py-3 bg-orange-500 hover:bg-orange-600 text-white font-semibold rounded-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-xl"
           >
             {loading ? (
               <>
@@ -185,7 +189,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 {selectedMethod && <ExternalLink size={14} className="ml-1" />}
               </>
             )}
-          </button>
+          </Button>
 
           <div className="flex items-center justify-center gap-2 text-xs text-gray-400">
             <Shield size={12} />
