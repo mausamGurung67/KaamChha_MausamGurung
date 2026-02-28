@@ -1,6 +1,7 @@
 import prisma from '../config/database';
 import { OrderStatus, PaymentStatus, UserRole } from '@prisma/client';
 import { getIO } from '../socket';
+import * as notificationService from './notification.service';
 
 // ── Types ─────────────────────────────────────────────
 
@@ -173,6 +174,11 @@ export const createReview = async (data: CreateReviewData): Promise<any> => {
   } catch (socketError) {
     console.error('[Review] Socket emit error:', socketError);
   }
+
+  // Persist notification for the technician
+  notificationService.notifyReviewSubmitted(review, order, order.technicianId!).catch((err) =>
+    console.error('[Notification] notifyReviewSubmitted failed:', err),
+  );
 
   return {
     review,

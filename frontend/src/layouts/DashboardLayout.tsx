@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import logoImg from '../assets/images/logo.png';
 import toast from 'react-hot-toast';
+import NotificationBell from '../components/common/NotificationBell';
 
 export interface NavItem {
   label: string;
@@ -189,6 +190,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ navItems, title }) =>
             <h1 className="text-lg font-semibold text-gray-900">{title}</h1>
           </div>
           <div className="flex items-center gap-3">
+            {user?.role !== 'ADMIN' && <NotificationBell />}
             <span
               className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${
                 user?.role === 'TECHNICIAN'

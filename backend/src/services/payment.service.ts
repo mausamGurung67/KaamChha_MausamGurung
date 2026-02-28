@@ -4,6 +4,7 @@ import prisma from '../config/database';
 import env from '../config/env';
 import { OrderStatus, PaymentStatus, PaymentMethod, UserRole } from '@prisma/client';
 import { getIO } from '../socket';
+import * as notificationService from './notification.service';
 
 // ── Khalti API helpers 
 
@@ -299,6 +300,11 @@ export const verifyKhaltiPayment = async (
     // Socket emission should not fail the whole payment flow
     console.error('[Payment] Socket emit error:', socketError);
   }
+
+  // Persist notification for Khalti payment
+  notificationService.notifyPaymentSuccess(updatedOrder, 'KHALTI').catch((err) =>
+    console.error('[Notification] notifyPaymentSuccess (Khalti) failed:', err),
+  );
 
   return updatedOrder;
 };
@@ -643,6 +649,11 @@ export const verifyEsewaPayment = async (
   } catch (socketError) {
     console.error('[Payment] Socket emit error:', socketError);
   }
+
+  // Persist notification for eSewa payment
+  notificationService.notifyPaymentSuccess(updatedOrder, 'ESEWA').catch((err) =>
+    console.error('[Notification] notifyPaymentSuccess (eSewa) failed:', err),
+  );
 
   return updatedOrder;
 };

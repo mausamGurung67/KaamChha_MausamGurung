@@ -3,6 +3,7 @@ import { OrderStatus, PaymentStatus, UserRole } from '@prisma/client';
 import { calculateCommission } from './commission.service';
 import { findNearbyTechnicians } from './location.service';
 import { getPaginationParams, createPaginationResponse } from '../utils/pagination.util';
+import * as notificationService from './notification.service';
 
 export interface CreateOrderData {
   customerId: string;
@@ -103,23 +104,10 @@ export const createOrder = async (data: CreateOrderData): Promise<any> => {
     },
   });
 
-  // TODO: Emit real-time update (socket service not implemented)
-  // emitOrderUpdate(order.id, {
-  //   type: 'ORDER_CREATED',
-  //   order: {
-  //     id: order.id,
-  //     status: order.status,
-  //     paymentStatus: order.paymentStatus,
-  //   },
-  // });
-
-  // TODO: Send email notification (notification service not implemented)
-  // try {
-  //   const { sendOrderConfirmationEmail } = await import('./notification.service');
-  //   await sendOrderConfirmationEmail(...);
-  // } catch (error) {
-  //   console.error('Failed to send order confirmation email:', error);
-  // }
+  // Real-time notification: notify all approved technicians
+  notificationService.notifyBookingCreated(order).catch((err) =>
+    console.error('[Notification] notifyBookingCreated failed:', err),
+  );
 
   return order;
 };
@@ -384,17 +372,6 @@ export const updateOrderStatus = async (
     },
   });
 
-  // Send completion email if order is completed
-  if (status === OrderStatus.COMPLETED) {
-    // TODO: Send email notification (notification service not implemented)
-    // try {
-    //   const { sendOrderCompletionEmail } = await import('./notification.service');
-    //   await sendOrderCompletionEmail(...);
-    // } catch (error) {
-    //   console.error('Failed to send completion email:', error);
-    // }
-  }
-
   // Create booking history entry
   await prisma.bookingHistory.create({
     data: {
@@ -406,22 +383,10 @@ export const updateOrderStatus = async (
     },
   });
 
-  // TODO: Emit real-time update (socket service not implemented)
-  // emitOrderUpdate(id, {
-  //   type: 'STATUS_UPDATED',
-  //   order: {
-  //     id: updatedOrder.id,
-  //     status: updatedOrder.status,
-  //   },
-  // });
-
-  // TODO: Send email notification (notification service not implemented)
-  // try {
-  //   const { sendOrderStatusUpdateEmail } = await import('./notification.service');
-  //   await sendOrderStatusUpdateEmail(...);
-  // } catch (error) {
-  //   console.error('Failed to send status update email:', error);
-  // }
+  // Real-time notification for status update
+  notificationService.notifyBookingStatusUpdated(updatedOrder, status, userRole).catch((err) =>
+    console.error('[Notification] notifyBookingStatusUpdated failed:', err),
+  );
 
   return updatedOrder;
 };
@@ -495,26 +460,10 @@ export const assignTechnician = async (
     },
   });
 
-  // TODO: Emit real-time update (socket service not implemented)
-  // emitOrderUpdate(orderId, {
-  //   type: 'TECHNICIAN_ASSIGNED',
-  //   order: {
-  //     id: updatedOrder.id,
-  //     status: updatedOrder.status,
-  //     technician: updatedOrder.technician,
-  //   },
-  // });
-
-  // TODO: Send email notifications (notification service not implemented)
-  // try {
-  //   const {
-  //     sendTechnicianAssignmentEmail,
-  //     sendTechnicianOrderNotification,
-  //   } = await import('./notification.service');
-  //   ...
-  // } catch (error) {
-  //   console.error('Failed to send assignment emails:', error);
-  // }
+  // Real-time notification for assignment
+  notificationService.notifyBookingStatusUpdated(updatedOrder, OrderStatus.ASSIGNED, UserRole.ADMIN).catch((err) =>
+    console.error('[Notification] notifyBookingStatusUpdated (assign) failed:', err),
+  );
 
   return updatedOrder;
 };
@@ -610,14 +559,10 @@ export const cancelOrder = async (
     },
   });
 
-  // TODO: Emit real-time update (socket service not implemented)
-  // emitOrderUpdate(orderId, {
-  //   type: 'ORDER_CANCELLED',
-  //   order: {
-  //     id: updatedOrder.id,
-  //     status: updatedOrder.status,
-  //   },
-  // });
+  // Real-time notification: notify the other party about cancellation
+  notificationService.notifyBookingCancelled(order, userId, userRole).catch((err) =>
+    console.error('[Notification] notifyBookingCancelled failed:', err),
+  );
 
   return updatedOrder;
 };
@@ -668,6 +613,11 @@ export const acceptOrder = async (orderId: string, technicianId: string): Promis
     },
   });
 
+  // Real-time notification: notify customer
+  notificationService.notifyBookingAccepted(updatedOrder).catch((err) =>
+    console.error('[Notification] notifyBookingAccepted failed:', err),
+  );
+
   return updatedOrder;
 };
 
@@ -696,6 +646,11 @@ export const rejectOrder = async (orderId: string, technicianId: string, reason?
       notes: reason || 'Booking rejected by technician',
     },
   });
+
+  // Real-time notification: notify customer
+  notificationService.notifyBookingRejected(updatedOrder).catch((err) =>
+    console.error('[Notification] notifyBookingRejected failed:', err),
+  );
 
   return updatedOrder;
 };
@@ -743,6 +698,15 @@ export const completeByTechnician = async (
     },
   });
 
+  // Real-time notification: notify customer about pending confirmation
+  notificationService.notifyBookingStatusUpdated(
+    updatedOrder,
+    OrderStatus.COMPLETED_BY_TECHNICIAN,
+    UserRole.TECHNICIAN,
+  ).catch((err) =>
+    console.error('[Notification] notifyBookingStatusUpdated (completedByTech) failed:', err),
+  );
+
   return updatedOrder;
 };
 
@@ -784,6 +748,11 @@ export const confirmCompletion = async (orderId: string, customerId: string): Pr
       notes: 'Customer confirmed completion',
     },
   });
+
+  // Real-time notification: notify technician of confirmed completion
+  notificationService.notifyBookingCompleted(updatedOrder).catch((err) =>
+    console.error('[Notification] notifyBookingCompleted failed:', err),
+  );
 
   return updatedOrder;
 };

@@ -87,6 +87,7 @@ model User {
   verifiedKYCs      KYC[]     @relation("KYCVerifier")
   customerReviews   Review[]  @relation("CustomerReviews")
   technicianReviews Review[]  @relation("TechnicianReviews")
+  notifications     Notification[]
 
   @@index([email])
   @@index([role])
@@ -341,5 +342,33 @@ model Review {
   @@index([serviceId])
   @@index([rating])
   @@index([isApproved])
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_ACCEPTED
+  BOOKING_REJECTED
+  BOOKING_CANCELLED
+  BOOKING_STATUS_UPDATED
+  BOOKING_COMPLETED
+  PAYMENT_SUCCESS
+  REVIEW_SUBMITTED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  data      Json?            // extra payload (orderId, etc.)
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@index([createdAt])
 }
 

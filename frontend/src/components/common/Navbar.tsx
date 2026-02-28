@@ -4,6 +4,7 @@ import { ChevronDown, User, LogOut, LayoutDashboard, ClipboardList } from 'lucid
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/images/logo.png';
 import toast from 'react-hot-toast';
+import NotificationBell from './NotificationBell';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -110,8 +111,10 @@ const Navbar: React.FC = () => {
               </Link>
             </>
           ) : (
-            // Logged in - show profile dropdown
-            <div className="relative" ref={dropdownRef}>
+            // Logged in - show notification bell + profile dropdown
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition"
@@ -196,6 +199,7 @@ const Navbar: React.FC = () => {
                   </button>
                 </div>
               )}
+            </div>
             </div>
           )}
         </div>

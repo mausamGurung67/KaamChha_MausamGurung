@@ -134,6 +134,14 @@ export const API_ENDPOINTS = {
     ORDER: (orderId: string) => `/reviews/order/${orderId}`,
     CAN_REVIEW: (orderId: string) => `/reviews/order/${orderId}/can-review`,
   },
+
+  // Notifications
+  NOTIFICATIONS: {
+    LIST: '/notifications',
+    UNREAD_COUNT: '/notifications/unread-count',
+    MARK_READ: (id: string) => `/notifications/${id}/read`,
+    MARK_ALL_READ: '/notifications/read-all',
+  },
   
   // Health
   HEALTH: '/health',
