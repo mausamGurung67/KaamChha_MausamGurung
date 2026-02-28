@@ -18,6 +18,7 @@ import { TechDashboardSkeleton } from '../../components/common/Skeleton';
 import { useAuth } from '../../hooks/useAuth';
 import { getTechnicianRating } from '../../services/review.service';
 import { useReviewSocket } from '../../hooks/useReviewSocket';
+import toast from 'react-hot-toast';
 
 const TechnicianDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -27,14 +28,15 @@ const TechnicianDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [rating, setRating] = useState<{ averageRating: number; totalReviews: number }>({ averageRating: 0, totalReviews: 0 });
-  const [newReviewToast, setNewReviewToast] = useState<string | null>(null);
 
   // Real-time review updates
   useReviewSocket({
     onNewReview: (payload) => {
       setRating({ averageRating: payload.averageRating, totalReviews: payload.totalReviews });
-      setNewReviewToast(`${payload.review.customer.profile?.name || 'A customer'} rated you ${payload.review.rating}/5!`);
-      setTimeout(() => setNewReviewToast(null), 5000);
+      toast(
+        `${payload.review.customer.profile?.name || 'A customer'} rated you ${payload.review.rating}/5!`,
+        { icon: '⭐', duration: 5000 }
+      );
     },
   });
 
@@ -213,14 +215,6 @@ const TechnicianDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* New review toast */}
-      {newReviewToast && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3 animate-pulse">
-          <Star size={18} className="text-amber-500 fill-amber-500" />
-          <p className="text-sm text-amber-700 font-medium">{newReviewToast}</p>
-        </div>
-      )}
-
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => (

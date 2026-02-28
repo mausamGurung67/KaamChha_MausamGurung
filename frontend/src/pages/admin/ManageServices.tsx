@@ -12,8 +12,8 @@ import {
   Layers,
   X,
   Upload,
-  AlertCircle,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
   listServices,
   createService,
@@ -36,7 +36,6 @@ const ManageServices: React.FC = () => {
   const [search, setSearch] = useState('');
   const [catFilter, setCatFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'true' | 'false'>('all');
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // modal state
   const [showForm, setShowForm] = useState(false);
@@ -77,7 +76,7 @@ const ManageServices: React.FC = () => {
         setTotal(res.data.total);
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to load services' });
+      toast.error('Failed to load services');
     } finally {
       setLoading(false);
     }
@@ -97,19 +96,12 @@ const ManageServices: React.FC = () => {
     setPage(1);
   }, [search, catFilter, statusFilter]);
 
-  useEffect(() => {
-    if (feedback) {
-      const t = setTimeout(() => setFeedback(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [feedback]);
-
   // ── image upload ──────────────────────────────────────
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if ((formData.images?.length || 0) >= 4) {
-      setFeedback({ type: 'error', message: 'Maximum 4 images allowed' });
+      toast.error('Maximum 4 images allowed');
       return;
     }
     setImageUploading(true);
@@ -123,7 +115,7 @@ const ManageServices: React.FC = () => {
       setImagePreviews((prev) => [...prev, result.url]);
       if (!imagePreview) setImagePreview(result.url);
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to upload image' });
+      toast.error('Failed to upload image');
     } finally {
       setImageUploading(false);
     }
@@ -204,18 +196,15 @@ const ManageServices: React.FC = () => {
     try {
       if (editingService) {
         await updateService(editingService.id, formData);
-        setFeedback({ type: 'success', message: 'Service updated successfully' });
+        toast.success('Service updated successfully');
       } else {
         await createService(formData);
-        setFeedback({ type: 'success', message: 'Service created successfully' });
+        toast.success('Service created successfully');
       }
       setShowForm(false);
       fetchServices();
     } catch (err: any) {
-      setFeedback({
-        type: 'error',
-        message: err?.response?.data?.message || 'Failed to save service',
-      });
+      toast.error(err?.response?.data?.message || 'Failed to save service');
     } finally {
       setFormLoading(false);
     }
@@ -226,13 +215,10 @@ const ManageServices: React.FC = () => {
     setTogglingId(svc.id);
     try {
       await updateService(svc.id, { isActive: !svc.isActive });
-      setFeedback({
-        type: 'success',
-        message: `Service ${svc.isActive ? 'deactivated' : 'activated'}`,
-      });
+      toast.success(`Service ${svc.isActive ? 'deactivated' : 'activated'}`);
       fetchServices();
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to update service' });
+      toast.error('Failed to update service');
     } finally {
       setTogglingId(null);
     }
@@ -244,10 +230,10 @@ const ManageServices: React.FC = () => {
     setDeletingId(id);
     try {
       await deleteService(id);
-      setFeedback({ type: 'success', message: 'Service deleted' });
+      toast.success('Service deleted');
       fetchServices();
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to delete service' });
+      toast.error('Failed to delete service');
     } finally {
       setDeletingId(null);
     }
@@ -267,18 +253,6 @@ const ManageServices: React.FC = () => {
           <Plus size={18} /> Add Service
         </button>
       </div>
-
-      {feedback && (
-        <div
-          className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${
-            feedback.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
-          }`}
-        >
-          <AlertCircle size={16} /> {feedback.message}
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">

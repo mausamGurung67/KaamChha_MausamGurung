@@ -23,6 +23,7 @@ import Profile from '../pages/profile/Profile';
 import Unauthorized from '../pages/public/Unauthorized';
 import AboutUs from '../pages/public/AboutUs';
 import TechnicianDashboard from '../pages/technician/TechnicianDashboard';
+import TechnicianReviews from '../pages/technician/TechnicianReviews';
 
 // Admin pages
 import AdminDashboardHome from '../pages/admin/AdminDashboardHome';
@@ -171,6 +172,7 @@ const AppRoutes: React.FC = () => {
         <Route path="dashboard" element={<TechnicianDashboard />} />
         <Route path="requests" element={<TechnicianBookings />} />
         <Route path="chat" element={<ChatPage />} />
+        <Route path="reviews" element={<TechnicianReviews />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 

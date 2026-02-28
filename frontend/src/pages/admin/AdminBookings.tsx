@@ -21,6 +21,7 @@ import {
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { DashboardStatsSkeleton, BookingTableSkeleton } from '../../components/common/Skeleton';
+import toast from 'react-hot-toast';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pending',
@@ -79,7 +80,7 @@ const AdminBookings: React.FC = () => {
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to update status');
+      toast.error(err?.response?.data?.message || 'Failed to update status');
     } finally {
       setActionLoading('');
     }
@@ -93,7 +94,7 @@ const AdminBookings: React.FC = () => {
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to cancel');
+      toast.error(err?.response?.data?.message || 'Failed to cancel');
     } finally {
       setActionLoading('');
     }

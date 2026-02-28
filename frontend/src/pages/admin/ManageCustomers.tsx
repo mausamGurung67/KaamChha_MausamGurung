@@ -7,10 +7,10 @@ import {
   Users,
   ShieldCheck,
   ShieldOff,
-  AlertCircle,
   Mail,
   Phone,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
   listCustomers,
   updateUser,
@@ -26,7 +26,6 @@ const ManageCustomers: React.FC = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const fetchCustomers = useCallback(async () => {
@@ -41,7 +40,7 @@ const ManageCustomers: React.FC = () => {
         setPagination(res.pagination);
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to load customers' });
+      toast.error('Failed to load customers');
     } finally {
       setLoading(false);
     }
@@ -55,24 +54,14 @@ const ManageCustomers: React.FC = () => {
     setPage(1);
   }, [search, statusFilter]);
 
-  useEffect(() => {
-    if (feedback) {
-      const t = setTimeout(() => setFeedback(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [feedback]);
-
   const handleToggleActive = async (customer: CustomerUser) => {
     setTogglingId(customer.id);
     try {
       await updateUser(customer.id, { isActive: !customer.isActive });
-      setFeedback({
-        type: 'success',
-        message: `Customer ${customer.isActive ? 'blocked' : 'unblocked'} successfully`,
-      });
+      toast.success(`Customer ${customer.isActive ? 'blocked' : 'unblocked'} successfully`);
       fetchCustomers();
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to update customer status' });
+      toast.error('Failed to update customer status');
     } finally {
       setTogglingId(null);
     }
@@ -86,18 +75,6 @@ const ManageCustomers: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Manage Customers</h1>
         <p className="text-gray-500 mt-1">View and manage customer accounts</p>
       </div>
-
-      {feedback && (
-        <div
-          className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${
-            feedback.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
-          }`}
-        >
-          <AlertCircle size={16} /> {feedback.message}
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">

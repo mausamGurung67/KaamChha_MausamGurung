@@ -8,11 +8,11 @@ import {
   Clock,
   CheckCircle,
   Layers,
-  Star,
 } from 'lucide-react';
 import { getPlatformStats, type PlatformStats } from '../../services/admin.service';
 import { DashboardStatsSkeleton } from '../../components/common/Skeleton';
 import { useReviewSocket } from '../../hooks/useReviewSocket';
+import toast from 'react-hot-toast';
 
 interface StatCardProps {
   title: string;
@@ -39,15 +39,14 @@ const AdminDashboardHome: React.FC = () => {
   const [stats, setStats] = useState<PlatformStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [reviewToast, setReviewToast] = useState<string | null>(null);
 
   // Real-time review updates
   useReviewSocket({
     onNewReview: (payload) => {
-      setReviewToast(
-        `New ${payload.review.rating}-star review for ${payload.review.service.name} by ${payload.review.customer.profile?.name || 'Customer'}`
+      toast(
+        `New ${payload.review.rating}-star review for ${payload.review.service.name} by ${payload.review.customer.profile?.name || 'Customer'}`,
+        { icon: '⭐', duration: 6000 }
       );
-      setTimeout(() => setReviewToast(null), 6000);
     },
   });
 
@@ -91,14 +90,6 @@ const AdminDashboardHome: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      {/* Real-time review toast */}
-      {reviewToast && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3 animate-pulse">
-          <Star size={18} className="text-amber-500 fill-amber-500 flex-shrink-0" />
-          <p className="text-sm text-amber-700 font-medium">{reviewToast}</p>
-        </div>
-      )}
-
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Platform Overview</h1>
         <p className="text-gray-500 mt-1">Real-time statistics of your platform</p>

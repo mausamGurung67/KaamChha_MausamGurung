@@ -7,8 +7,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  AlertCircle,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
   listKYCs,
   verifyKYC,
@@ -37,7 +37,6 @@ const VerifyKYC: React.FC = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchKYCs = useCallback(async () => {
     setLoading(true);
@@ -51,7 +50,7 @@ const VerifyKYC: React.FC = () => {
         setTotal(res.data.total);
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to load KYC submissions' });
+      toast.error('Failed to load KYC submissions');
     } finally {
       setLoading(false);
     }
@@ -74,26 +73,18 @@ const VerifyKYC: React.FC = () => {
       }
       const res = await verifyKYC(id, data);
       if (res.success) {
-        setFeedback({ type: 'success', message: `KYC ${status.toLowerCase()} successfully` });
+        toast.success(`KYC ${status.toLowerCase()} successfully`);
         setSelectedKYC(null);
         setShowRejectForm(false);
         setRejectionReason('');
         fetchKYCs();
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to verify KYC' });
+      toast.error('Failed to verify KYC');
     } finally {
       setActionLoading(false);
     }
   };
-
-  // Auto-dismiss feedback
-  useEffect(() => {
-    if (feedback) {
-      const t = setTimeout(() => setFeedback(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [feedback]);
 
   const tabs: { value: KYCTab; label: string }[] = [
     { value: 'PENDING', label: 'Pending' },
@@ -108,21 +99,6 @@ const VerifyKYC: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Verify KYC</h1>
         <p className="text-gray-500 mt-1">Review and verify technician KYC submissions</p>
       </div>
-
-      {/* Feedback toast */}
-      {feedback && (
-        <div
-          className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${
-            feedback.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
-          }`}
-        >
-          {feedback.type === 'error' && <AlertCircle size={16} />}
-          {feedback.type === 'success' && <ShieldCheck size={16} />}
-          {feedback.message}
-        </div>
-      )}
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit">

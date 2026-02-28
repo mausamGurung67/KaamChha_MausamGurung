@@ -7,9 +7,9 @@ import {
   ToggleRight,
   Loader2,
   Users,
-  AlertCircle,
   UserCog,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import {
   listTechnicians,
   getTechnicianStats,
@@ -31,7 +31,6 @@ const ManageTechnicians: React.FC = () => {
   const [stats, setStats] = useState<TechnicianStats | null>(null);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -60,7 +59,7 @@ const ManageTechnicians: React.FC = () => {
         if (statsRes.data) setStats(statsRes.data);
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to load technicians' });
+      toast.error('Failed to load technicians');
     } finally {
       setLoading(false);
     }
@@ -75,27 +74,16 @@ const ManageTechnicians: React.FC = () => {
     setPage(1);
   }, [search, kycFilter, activeFilter]);
 
-  // Auto-dismiss feedback
-  useEffect(() => {
-    if (feedback) {
-      const t = setTimeout(() => setFeedback(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [feedback]);
-
   const handleToggleActive = async (tech: TechnicianUser) => {
     setTogglingId(tech.id);
     try {
       const res = await updateUser(tech.id, { isActive: !tech.isActive });
       if (res.success) {
-        setFeedback({
-          type: 'success',
-          message: `Technician ${tech.isActive ? 'deactivated' : 'activated'} successfully`,
-        });
+        toast.success(`Technician ${tech.isActive ? 'deactivated' : 'activated'} successfully`);
         fetchData();
       }
     } catch {
-      setFeedback({ type: 'error', message: 'Failed to update technician status' });
+      toast.error('Failed to update technician status');
     } finally {
       setTogglingId(null);
     }
@@ -107,20 +95,6 @@ const ManageTechnicians: React.FC = () => {
         <h1 className="text-2xl font-bold text-gray-900">Manage Technicians</h1>
         <p className="text-gray-500 mt-1">View and manage all registered technicians</p>
       </div>
-
-      {/* Feedback toast */}
-      {feedback && (
-        <div
-          className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${
-            feedback.type === 'success'
-              ? 'bg-green-50 text-green-700 border border-green-200'
-              : 'bg-red-50 text-red-700 border border-red-200'
-          }`}
-        >
-          {feedback.type === 'error' ? <AlertCircle size={16} /> : <UserCog size={16} />}
-          {feedback.message}
-        </div>
-      )}
 
       {/* Stats cards */}
       {stats && (

@@ -28,6 +28,7 @@ import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { BookingCardSkeleton } from '../../components/common/Skeleton';
 import PaymentModal from '../../components/payment/PaymentModal';
 import ReviewModal from '../../components/review/ReviewModal';
+import toast from 'react-hot-toast';
 import { getOrderReview, type Review } from '../../services/review.service';
 
 const statusLabels: Record<string, string> = {
@@ -121,7 +122,7 @@ const MyBookings: React.FC = () => {
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to cancel booking');
+      toast.error(err?.response?.data?.message || 'Failed to cancel booking');
     } finally {
       setActionLoading('');
     }
@@ -134,7 +135,7 @@ const MyBookings: React.FC = () => {
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to confirm completion');
+      toast.error(err?.response?.data?.message || 'Failed to confirm completion');
     } finally {
       setActionLoading('');
     }

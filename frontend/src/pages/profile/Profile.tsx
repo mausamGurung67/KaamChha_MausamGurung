@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { User, Mail, Phone, Shield, CheckCircle, XCircle, Pencil, Loader2, MapPin, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, Shield, CheckCircle, XCircle, Pencil, Loader2, MapPin } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Navbar from '../../components/common/Navbar';
 import { getProfile, updateProfile, type UpdateProfilePayload } from '../../services/profile.service';
 import { STORAGE_KEYS } from '../../utils/constants';
@@ -15,7 +16,6 @@ const Profile: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [form, setForm] = useState({ name: '', phone: '', address: '' });
 
   // Fetch full profile when entering edit mode
@@ -43,7 +43,6 @@ const Profile: React.FC = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    setFeedback(null);
     try {
       const payload: UpdateProfilePayload = {};
       if (form.name.trim()) payload.name = form.name.trim();
@@ -58,22 +57,15 @@ const Profile: React.FC = () => {
           setUser(updated);
           localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
         }
-        setFeedback({ type: 'success', message: 'Profile updated successfully' });
+        toast.success('Profile updated successfully');
         setEditing(false);
       }
     } catch (err: any) {
-      setFeedback({ type: 'error', message: err?.response?.data?.message || 'Failed to update profile' });
+      toast.error(err?.response?.data?.message || 'Failed to update profile');
     } finally {
       setSaving(false);
     }
   };
-
-  useEffect(() => {
-    if (feedback) {
-      const t = setTimeout(() => setFeedback(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [feedback]);
 
   if (!user) {
     return (
@@ -94,16 +86,6 @@ const Profile: React.FC = () => {
 
       <div className={`${isInsideDashboard ? 'pt-2' : 'pt-24'} px-6 pb-12`}>
         <div className="max-w-4xl mx-auto">
-
-          {feedback && (
-            <div className={`flex items-center gap-2 p-3 rounded-lg text-sm font-medium mb-4 ${
-              feedback.type === 'success'
-                ? 'bg-green-50 text-green-700 border border-green-200'
-                : 'bg-red-50 text-red-700 border border-red-200'
-            }`}>
-              <AlertCircle size={16} /> {feedback.message}
-            </div>
-          )}
 
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-6">

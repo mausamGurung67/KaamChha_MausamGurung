@@ -27,6 +27,7 @@ import {
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { TabBarSkeleton, BookingCardSkeleton } from '../../components/common/Skeleton';
+import toast from 'react-hot-toast';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pending',
@@ -93,7 +94,7 @@ const TechnicianBookings: React.FC = () => {
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to accept booking');
+      toast.error(err?.response?.data?.message || 'Failed to accept booking');
     } finally {
       setActionLoading('');
     }
@@ -108,7 +109,7 @@ const TechnicianBookings: React.FC = () => {
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to reject booking');
+      toast.error(err?.response?.data?.message || 'Failed to reject booking');
     } finally {
       setActionLoading('');
     }
@@ -121,7 +122,7 @@ const TechnicianBookings: React.FC = () => {
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
-      alert(err?.response?.data?.message || 'Failed to start work');
+      toast.error(err?.response?.data?.message || 'Failed to start work');
     } finally {
       setActionLoading('');
     }
@@ -152,7 +153,7 @@ const TechnicianBookings: React.FC = () => {
       setSelectedBooking(null);
     } catch (err: any) {
       setUploadProgress('');
-      alert(err?.response?.data?.message || 'Failed to mark as completed');
+      toast.error(err?.response?.data?.message || 'Failed to mark as completed');
     } finally {
       setActionLoading('');
     }
