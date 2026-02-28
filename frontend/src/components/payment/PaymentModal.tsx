@@ -4,6 +4,9 @@ import { initiateKhaltiPayment, initiateEsewaPayment } from '../../services/paym
 import Button from '../common/Button';
 import toast from 'react-hot-toast';
 
+import khaltiLogo from '../../assets/images/khalti-logo.png';
+import esewaLogo from '../../assets/images/esewa-logo.png';
+
 interface PaymentModalProps {
   orderId: string;
   amount: number;
@@ -118,9 +121,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 : 'border-gray-200 hover:border-gray-300 bg-white'
             }`}
           >
-            <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-lg">K</span>
-            </div>
+            <img
+              src={khaltiLogo}
+              alt="Khalti"
+              className="w-12 h-12 rounded-xl object-contain flex-shrink-0"
+            />
             <div className="text-left flex-1">
               <p className="font-semibold text-gray-900">Khalti</p>
               <p className="text-xs text-gray-500">Pay with Khalti Digital Wallet</p>
@@ -143,9 +148,11 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
                 : 'border-gray-200 hover:border-gray-300 bg-white'
             }`}
           >
-            <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-lg">e</span>
-            </div>
+            <img
+              src={esewaLogo}
+              alt="eSewa"
+              className="w-12 h-12 rounded-xl object-contain flex-shrink-0"
+            />
             <div className="text-left flex-1">
               <p className="font-semibold text-gray-900">eSewa</p>
               <p className="text-xs text-gray-500">Pay with eSewa Wallet</p>
