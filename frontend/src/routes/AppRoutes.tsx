@@ -5,7 +5,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import RoleRedirect from '../components/common/RoleRedirect';
-import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList, MessageSquare, FileText } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -33,7 +33,11 @@ import ManageServices from '../pages/admin/ManageServices';
 import ManageCustomers from '../pages/admin/ManageCustomers';
 import AdminBookings from '../pages/admin/AdminBookings';
 import MyBookings from '../pages/customer/MyBookings';
+import PostServiceRequest from '../pages/customer/PostServiceRequest';
+import MyServiceRequests from '../pages/customer/MyServiceRequests';
 import TechnicianBookings from '../pages/technician/TechnicianBookings';
+import TechnicianServiceRequests from '../pages/technician/TechnicianServiceRequests';
+import AdminServiceRequests from '../pages/admin/AdminServiceRequests';
 import ChatPage from '../pages/chat/ChatPage';
 import KhaltiCallback from '../pages/payment/KhaltiCallback';
 import EsewaCallback from '../pages/payment/EsewaCallback';
@@ -75,6 +79,11 @@ const adminNavItems: NavItem[] = [
     label: 'Manage Customers',
     path: '/admin/customers',
     icon: <UserCheck size={20} />,
+  },
+  {
+    label: 'Service Requests',
+    path: '/admin/service-requests',
+    icon: <FileText size={20} />,
   },
   {
     label: 'Chat',
@@ -121,6 +130,24 @@ const AppRoutes: React.FC = () => {
         }
       />
 
+      {/* Customer Service Request pages */}
+      <Route
+        path="/post-service-request"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <PostServiceRequest />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-service-requests"
+        element={
+          <ProtectedRoute allowedRoles={['CUSTOMER']}>
+            <MyServiceRequests />
+          </ProtectedRoute>
+        }
+      />
+
       {/* Khalti payment callback */}
       <Route
         path="/payment/khalti/callback"
@@ -156,6 +183,7 @@ const AppRoutes: React.FC = () => {
         <Route path="services" element={<ManageServices />} />
         <Route path="bookings" element={<AdminBookings />} />
         <Route path="customers" element={<ManageCustomers />} />
+        <Route path="service-requests" element={<AdminServiceRequests />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="profile" element={<Profile />} />
       </Route>
@@ -171,6 +199,7 @@ const AppRoutes: React.FC = () => {
       >
         <Route path="dashboard" element={<TechnicianDashboard />} />
         <Route path="requests" element={<TechnicianBookings />} />
+        <Route path="customer-requests" element={<TechnicianServiceRequests />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="reviews" element={<TechnicianReviews />} />
         <Route path="profile" element={<Profile />} />

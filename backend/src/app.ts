@@ -69,6 +69,7 @@ import profileRoutes from './routes/profile.routes';
 import paymentRoutes from './routes/payment.routes';
 import reviewRoutes from './routes/review.routes';
 import notificationRoutes from './routes/notification.routes';
+import serviceRequestRoutes from './routes/serviceRequest.routes';
 
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/categories', categoryRoutes);
@@ -84,6 +85,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/service-requests', serviceRequestRoutes);
 
 // Error handling
 app.use(notFoundHandler);

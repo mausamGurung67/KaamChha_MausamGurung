@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, ClipboardList, User, MessageSquare, Star } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, User, MessageSquare, Star, FileText } from 'lucide-react';
 import DashboardLayout from './DashboardLayout';
 import type { NavItem } from './DashboardLayout';
 import * as technicianService from '../services/technician.service';
@@ -14,6 +14,11 @@ const allNavItems: NavItem[] = [
     label: 'Service Requests',
     path: '/technician/requests',
     icon: <ClipboardList size={20} />,
+  },
+  {
+    label: 'Customer Requests',
+    path: '/technician/customer-requests',
+    icon: <FileText size={20} />,
   },
   {
     label: 'Chat',

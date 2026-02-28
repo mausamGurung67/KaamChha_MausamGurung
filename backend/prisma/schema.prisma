@@ -88,6 +88,8 @@ model User {
   customerReviews   Review[]  @relation("CustomerReviews")
   technicianReviews Review[]  @relation("TechnicianReviews")
   notifications     Notification[]
+  serviceRequests          ServiceRequest[]  @relation("CustomerServiceRequests")
+  assignedServiceRequests  ServiceRequest[]  @relation("TechnicianServiceRequests")
 
   @@index([email])
   @@index([role])
@@ -369,5 +371,34 @@ model Notification {
 
   // Single composite index covers: list by user (sorted), unread count, and mark-read queries
   @@index([userId, isRead, createdAt(sort: Desc)])
+}
+
+enum ServiceRequestStatus {
+  OPEN
+  ASSIGNED
+  COMPLETED
+  CANCELLED
+}
+
+model ServiceRequest {
+  id                    String               @id @default(cuid())
+  title                 String
+  description           String
+  category              String
+  budget                Decimal?             @db.Decimal(10, 2)
+  location              String
+  customerId            String
+  status                ServiceRequestStatus @default(OPEN)
+  assignedTechnicianId  String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  customer              User                 @relation("CustomerServiceRequests", fields: [customerId], references: [id], onDelete: Cascade)
+  assignedTechnician    User?                @relation("TechnicianServiceRequests", fields: [assignedTechnicianId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([assignedTechnicianId])
+  @@index([status])
+  @@index([createdAt])
 }
 

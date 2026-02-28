@@ -142,6 +142,17 @@ export const API_ENDPOINTS = {
     MARK_READ: (id: string) => `/notifications/${id}/read`,
     MARK_ALL_READ: '/notifications/read-all',
   },
+
+  // Service Requests (Customer Posted)
+  SERVICE_REQUESTS: {
+    LIST: '/service-requests',
+    GET: (id: string) => `/service-requests/${id}`,
+    CREATE: '/service-requests',
+    MY_REQUESTS: '/service-requests/my/requests',
+    UPDATE_STATUS: (id: string) => `/service-requests/${id}/status`,
+    ASSIGN: (id: string) => `/service-requests/${id}/assign`,
+    DELETE: (id: string) => `/service-requests/${id}`,
+  },
   
   // Health
   HEALTH: '/health',

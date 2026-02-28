@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronDown, User, LogOut, LayoutDashboard, ClipboardList } from 'lucide-react';
+import { ChevronDown, User, LogOut, LayoutDashboard, ClipboardList, PlusCircle, FileText } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/images/logo.png';
 import toast from 'react-hot-toast';
@@ -93,6 +93,15 @@ const Navbar: React.FC = () => {
             How It Works
           </Link>
           <Link to="/about" className={navLinkClass('/about')}>About Us</Link>
+          {user?.role === 'CUSTOMER' && (
+            <Link
+              to="/post-service-request"
+              className="inline-flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm px-4 py-2 rounded-full font-medium transition shadow-md hover:shadow-lg"
+            >
+              <PlusCircle size={15} />
+              Post a Service
+            </Link>
+          )}
         </div>
 
         {/* Right: Auth Buttons or Profile */}
@@ -179,6 +188,16 @@ const Navbar: React.FC = () => {
                     >
                       <ClipboardList size={16} />
                       <span>My Bookings</span>
+                    </Link>
+                  )}
+                  {user.role === 'CUSTOMER' && (
+                    <Link
+                      to="/my-service-requests"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition"
+                    >
+                      <FileText size={16} />
+                      <span>My Requests</span>
                     </Link>
                   )}
                   <Link
