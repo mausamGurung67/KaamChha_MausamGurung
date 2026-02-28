@@ -21,6 +21,7 @@ import { getServiceById, type ServiceItem } from '../../services/service.service
 import { createBooking } from '../../services/booking.service';
 import { ServiceDetailSkeleton } from '../../components/common/Skeleton';
 import ReviewList from '../../components/review/ReviewList';
+import toast from 'react-hot-toast';
 
 const ServiceDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -71,10 +72,12 @@ const ServiceDetails: React.FC = () => {
     }
     if (!serviceAddress.trim()) {
       setBookingError('Please select a location or enter an address');
+      toast.error('Please select a location or enter an address');
       return;
     }
     if (!selectedTime) {
       setBookingError('Please select a time slot');
+      toast.error('Please select a time slot');
       return;
     }
     if (!service || !id) return;
@@ -98,9 +101,12 @@ const ServiceDetails: React.FC = () => {
         serviceAddress: serviceAddress.trim(),
       });
 
+      toast.success('Booking created successfully!');
       navigate('/my-bookings', { state: { bookingSuccess: true } });
     } catch (err: any) {
-      setBookingError(err?.response?.data?.message || 'Failed to create booking. Please try again.');
+      const errorMsg = err?.response?.data?.message || 'Failed to create booking. Please try again.';
+      setBookingError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setBooking(false);
     }

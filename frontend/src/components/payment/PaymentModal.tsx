@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, CreditCard, Loader2, Shield, ExternalLink } from 'lucide-react';
 import { initiateKhaltiPayment, initiateEsewaPayment } from '../../services/payment.service';
+import toast from 'react-hot-toast';
 
 interface PaymentModalProps {
   orderId: string;
@@ -37,6 +38,7 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           window.location.href = res.data.payment_url;
         } else {
           setError(res.message || 'Failed to initiate payment');
+          toast.error(res.message || 'Failed to initiate payment');
         }
       } else if (selectedMethod === 'ESEWA') {
         const res = await initiateEsewaPayment(orderId);
@@ -61,10 +63,13 @@ const PaymentModal: React.FC<PaymentModalProps> = ({
           }
         } else {
           setError(res.message || 'Failed to initiate payment');
+          toast.error(res.message || 'Failed to initiate payment');
         }
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to initiate payment. Please try again.');
+      const errorMsg = err?.response?.data?.message || 'Failed to initiate payment. Please try again.';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

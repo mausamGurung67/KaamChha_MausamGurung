@@ -9,6 +9,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import logoImg from '../assets/images/logo.png';
+import toast from 'react-hot-toast';
 
 export interface NavItem {
   label: string;
@@ -32,9 +33,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ navItems, title }) =>
   const handleLogout = async () => {
     try {
       await logout();
+      toast.success('Logged out successfully');
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
+      toast.error('Logout failed. Please try again.');
     }
   };
 

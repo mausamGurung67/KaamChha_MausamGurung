@@ -119,6 +119,7 @@ const MyBookings: React.FC = () => {
     setActionLoading(id);
     try {
       await cancelBooking(id);
+      toast.success('Booking cancelled successfully');
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
@@ -132,6 +133,7 @@ const MyBookings: React.FC = () => {
     setActionLoading(id);
     try {
       await confirmCompletion(id);
+      toast.success('Service completion confirmed!');
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {

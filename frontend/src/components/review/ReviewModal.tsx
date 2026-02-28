@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, Loader2, Send, CheckCircle } from 'lucide-react';
 import { submitReview } from '../../services/review.service';
+import toast from 'react-hot-toast';
 
 interface ReviewModalProps {
   orderId: string;
@@ -27,6 +28,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
   const handleSubmit = async () => {
     if (rating === 0) {
       setError('Please select a rating');
+      toast.error('Please select a rating');
       return;
     }
 
@@ -38,13 +40,17 @@ const ReviewModal: React.FC<ReviewModalProps> = ({
 
       if (res.success) {
         setSuccess(true);
+        toast.success('Review submitted successfully!');
         onReviewSubmitted?.(res.data);
         setTimeout(() => onClose(), 2000);
       } else {
         setError(res.message || 'Failed to submit review');
+        toast.error(res.message || 'Failed to submit review');
       }
     } catch (err: any) {
-      setError(err?.message || 'Failed to submit review. Please try again.');
+      const errorMsg = err?.message || 'Failed to submit review. Please try again.';
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }

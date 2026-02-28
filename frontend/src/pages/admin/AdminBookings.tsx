@@ -77,6 +77,7 @@ const AdminBookings: React.FC = () => {
     setActionLoading(id);
     try {
       await updateBookingStatus(id, status);
+      toast.success(`Booking status updated to ${statusLabels[status] || status}`);
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
@@ -91,6 +92,7 @@ const AdminBookings: React.FC = () => {
     setActionLoading(id);
     try {
       await cancelBooking(id);
+      toast.success('Booking cancelled successfully');
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {

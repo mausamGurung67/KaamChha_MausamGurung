@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSocket } from '../context/SocketContext';
 import { getChatHistory, type ChatMessage } from '../services/chat.service';
+import toast from 'react-hot-toast';
 
 interface UseChatOptions {
   bookingId: string | null;
@@ -58,6 +59,7 @@ export const useChat = ({ bookingId }: UseChatOptions) => {
           joinedRef.current = true;
         } else {
           setError(res.message);
+          toast.error(res.message || 'Failed to join chat room');
         }
         setLoading(false);
       },
@@ -111,6 +113,7 @@ export const useChat = ({ bookingId }: UseChatOptions) => {
         (res: { success: boolean; message?: string }) => {
           if (!res.success) {
             setError(res.message || 'Failed to send message');
+            toast.error(res.message || 'Failed to send message');
           }
         },
       );

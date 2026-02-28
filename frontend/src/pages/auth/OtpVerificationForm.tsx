@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { STORAGE_KEYS, OTP_RESEND_COOLDOWN } from '../../utils/constants';
+import toast from 'react-hot-toast';
 
 const OtpVerification: React.FC = () => {
   const navigate = useNavigate();
@@ -75,13 +76,14 @@ const OtpVerification: React.FC = () => {
     clearError();
     try {
       await verifyEmail(otpCode);
+      toast.success('Email verified successfully!');
       setSuccessMessage('Email verified successfully! Redirecting...');
       setTimeout(() => {
         const target = user?.role === 'TECHNICIAN' ? '/auth/technician-kyc' : '/';
         navigate(target, { replace: true });
       }, 1200);
-    } catch {
-      // Error is handled by AuthContext
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Verification failed. Please try again.');
     }
   };
 
@@ -93,9 +95,10 @@ const OtpVerification: React.FC = () => {
       await resendOTP('EMAIL_VERIFICATION');
       setResendCooldown(OTP_RESEND_COOLDOWN);
       setSuccessMessage('OTP sent successfully!');
+      toast.success('OTP sent successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch {
-      // Error is handled by AuthContext
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || 'Failed to resend OTP. Please try again.');
     }
   };
 

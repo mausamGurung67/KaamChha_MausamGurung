@@ -4,6 +4,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { API_ENDPOINTS, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from '../../utils/constants';
+import toast from 'react-hot-toast';
 import '../../styles/auth.css';
 
 type DocumentType = 'CITIZENSHIP' | 'LICENSE' | 'PASSPORT';
@@ -61,6 +62,7 @@ const TechnicianKycUpload: React.FC = () => {
     const validationError = validateFile(file);
     if (validationError) {
       setError(validationError);
+      toast.error(validationError);
       return;
     }
 
@@ -79,6 +81,7 @@ const TechnicianKycUpload: React.FC = () => {
     } catch {
       setter({ file: null, preview: '', url: '', uploading: false });
       setError('Failed to upload image. Please try again.');
+      toast.error('Failed to upload image. Please try again.');
     }
   };
 
@@ -112,10 +115,12 @@ const TechnicianKycUpload: React.FC = () => {
 
     if (!documentNumber.trim()) {
       setError('Please enter your document number');
+      toast.error('Please enter your document number');
       return;
     }
     if (!allUploaded) {
       setError('Please upload all required documents');
+      toast.error('Please upload all required documents');
       return;
     }
 
@@ -130,11 +135,13 @@ const TechnicianKycUpload: React.FC = () => {
       });
 
       setSuccess(true);
+      toast.success('KYC documents submitted successfully!');
       setTimeout(() => navigate('/technician/dashboard'), 3000);
     } catch (err: any) {
       const message =
         err?.response?.data?.message || 'Failed to submit KYC. Please try again.';
       setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }

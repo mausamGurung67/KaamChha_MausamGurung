@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
+import toast from 'react-hot-toast';
 import '../../styles/auth.css';
 
 const Login: React.FC = () => {
@@ -16,11 +17,9 @@ const Login: React.FC = () => {
     
     try {
       await login({ email: formData.email, password: formData.password });
-      // Login successful - redirect based on role
-      // Note: We need to get the user from context after login
-      // The navigation will happen after the component re-renders with updated user
-    } catch {
-      // Error is handled by AuthContext
+      toast.success('Logged in successfully!');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || error || 'Login failed. Please try again.');
     }
   };
 

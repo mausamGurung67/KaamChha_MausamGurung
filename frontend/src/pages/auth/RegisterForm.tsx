@@ -4,6 +4,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
 import type { UserRole } from '../../types/auth.types';
+import toast from 'react-hot-toast';
 import '../../styles/auth.css';
 
 interface LocationState {
@@ -37,16 +38,19 @@ const Register: React.FC = () => {
     // Validation
     if (!agreed) {
       setValidationError('Please accept terms and conditions');
+      toast.error('Please accept terms and conditions');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
       setValidationError('Passwords do not match');
+      toast.error('Passwords do not match');
       return;
     }
 
     if (formData.password.length < 8) {
       setValidationError('Password must be at least 8 characters');
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
@@ -58,9 +62,10 @@ const Register: React.FC = () => {
         role: selectedRole,
       });
       // Navigate to OTP verification after successful registration
+      toast.success('Registration successful! Please verify your email.');
       navigate('/auth/otp-verify');
-    } catch {
-      // Error is handled by AuthContext
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || error || 'Registration failed. Please try again.');
     }
   };
 

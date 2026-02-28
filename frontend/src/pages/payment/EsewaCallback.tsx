@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle, XCircle, Loader2, ArrowLeft, CreditCard } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 import { verifyEsewaPayment } from '../../services/payment.service';
+import toast from 'react-hot-toast';
 
 type VerificationState = 'loading' | 'success' | 'failed';
 
@@ -23,12 +24,14 @@ const EsewaCallback: React.FC = () => {
     if (failStatus === 'failed') {
       setState('failed');
       setMessage('Payment was cancelled or failed. You can try again from your bookings.');
+      toast.error('Payment was cancelled or failed. You can try again from your bookings.');
       return;
     }
 
     if (!encodedData) {
       setState('failed');
       setMessage('Missing payment information. Please try again.');
+      toast.error('Missing payment information. Please try again.');
       return;
     }
 
@@ -40,12 +43,14 @@ const EsewaCallback: React.FC = () => {
     } catch {
       setState('failed');
       setMessage('Invalid payment response data.');
+      toast.error('Invalid payment response data.');
       return;
     }
 
     if (!orderId) {
       setState('failed');
       setMessage('Missing order information in payment response.');
+      toast.error('Missing order information in payment response.');
       return;
     }
 
@@ -59,16 +64,19 @@ const EsewaCallback: React.FC = () => {
         if (res.success && res.data) {
           setState('success');
           setMessage('Payment completed successfully!');
+          toast.success('Payment completed successfully!');
           setOrderData(res.data.order);
         } else {
           setState('failed');
-          setMessage(res.message || 'Payment verification failed.');
+          const failMsg = res.message || 'Payment verification failed.';
+          setMessage(failMsg);
+          toast.error(failMsg);
         }
       } catch (err: any) {
         setState('failed');
-        setMessage(
-          err?.response?.data?.message || 'Payment verification failed. Please contact support.'
-        );
+        const failMsg = err?.response?.data?.message || 'Payment verification failed. Please contact support.';
+        setMessage(failMsg);
+        toast.error(failMsg);
       }
     };
 

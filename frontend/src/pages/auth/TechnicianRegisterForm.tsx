@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
+import toast from 'react-hot-toast';
 import '../../styles/auth.css';
 
 const TechnicianRegisterForm: React.FC = () => {
@@ -22,22 +23,27 @@ const TechnicianRegisterForm: React.FC = () => {
   const validate = (): boolean => {
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
       setValidationError('Please enter your full name');
+      toast.error('Please enter your full name');
       return false;
     }
     if (!formData.email.trim()) {
       setValidationError('Please enter your email');
+      toast.error('Please enter your email');
       return false;
     }
     if (!formData.phone.trim()) {
       setValidationError('Please enter your phone number');
+      toast.error('Please enter your phone number');
       return false;
     }
     if (formData.password.length < 8) {
       setValidationError('Password must be at least 8 characters');
+      toast.error('Password must be at least 8 characters');
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
       setValidationError('Passwords do not match');
+      toast.error('Passwords do not match');
       return false;
     }
     return true;
@@ -58,9 +64,10 @@ const TechnicianRegisterForm: React.FC = () => {
         password: formData.password,
         role: 'TECHNICIAN',
       });
+      toast.success('Registration successful! Please verify your email.');
       navigate('/auth/otp-verify');
-    } catch {
-      // handled in context
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || error || 'Registration failed. Please try again.');
     }
   };
 

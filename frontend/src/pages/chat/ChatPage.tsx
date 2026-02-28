@@ -3,6 +3,7 @@ import { MessageSquare, Loader2, AlertTriangle, ArrowLeft, Search } from 'lucide
 import ChatWindow from '../../components/chat/ChatWindow';
 import { listBookings, type Booking } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
+import toast from 'react-hot-toast';
 
 const ChatPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -21,9 +22,11 @@ const ChatPage: React.FC = () => {
           setBookings(res.data.orders);
         } else {
           setError('Failed to load bookings');
+          toast.error('Failed to load chat bookings');
         }
       } catch {
         setError('Failed to load bookings');
+        toast.error('Failed to load chat bookings');
       } finally {
         setLoading(false);
       }

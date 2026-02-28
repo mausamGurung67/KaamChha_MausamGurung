@@ -91,6 +91,7 @@ const TechnicianBookings: React.FC = () => {
     setActionLoading(id);
     try {
       await acceptBooking(id);
+      toast.success('Booking accepted successfully!');
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
@@ -104,6 +105,7 @@ const TechnicianBookings: React.FC = () => {
     setActionLoading(id);
     try {
       await rejectBooking(id, rejectReason || undefined);
+      toast.success('Booking rejected');
       setShowRejectModal(null);
       setRejectReason('');
       fetchBookings();
@@ -119,6 +121,7 @@ const TechnicianBookings: React.FC = () => {
     setActionLoading(id);
     try {
       await updateBookingStatus(id, 'IN_PROGRESS' as BookingStatus, 'Work started by technician');
+      toast.success('Work started!');
       fetchBookings();
       setSelectedBooking(null);
     } catch (err: any) {
@@ -143,6 +146,7 @@ const TechnicianBookings: React.FC = () => {
         beforePhotos: beforeUrls.length > 0 ? beforeUrls : undefined,
         afterPhotos: afterUrls.length > 0 ? afterUrls : undefined,
       });
+      toast.success('Job marked as completed! Waiting for customer confirmation.');
       setShowCompleteModal(null);
       setCompleteNotes('');
       setBeforePhotos([]);

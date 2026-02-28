@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, User, LogOut, LayoutDashboard, ClipboardList } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/images/logo.png';
+import toast from 'react-hot-toast';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -38,10 +39,12 @@ const Navbar: React.FC = () => {
   const handleLogout = async () => {
     try {
       await logout();
+      toast.success('Logged out successfully');
       setIsDropdownOpen(false);
       navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
+      toast.error('Logout failed. Please try again.');
     }
   };
 
