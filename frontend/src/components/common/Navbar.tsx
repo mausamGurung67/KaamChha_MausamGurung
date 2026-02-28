@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronDown, User, LogOut, LayoutDashboard, ClipboardList, PlusCircle, FileText } from 'lucide-react';
+import { ChevronDown, User, LogOut, LayoutDashboard, ClipboardList, FileText } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import logoImg from '../../assets/images/logo.png';
 import toast from 'react-hot-toast';
@@ -59,11 +59,19 @@ const Navbar: React.FC = () => {
   return (
     <nav className="fixed top-0 w-full bg-white shadow-sm z-50 py-4">
       <div className="max-w-7xl mx-auto px-6 lg:px-8 flex justify-between items-center">
-        {/* Left: Logo + Become Technician */}
-        <div className="flex items-center gap-6">
+        {/* Left: Logo + Post Service / Become Technician */}
+        <div className="flex items-center gap-4">
           <Link to="/" className="shrink-0">
             <img src={logoImg} alt="Kaam Chha Logo" className="h-12 w-auto" />
           </Link>
+          {user?.role === 'CUSTOMER' && (
+            <Link
+              to="/post-service-request"
+              className="hidden sm:inline-flex bg-orange-500 hover:bg-orange-600 text-white text-sm px-5 py-2.5 rounded-full font-medium transition shadow-md hover:shadow-lg"
+            >
+              Post Service
+            </Link>
+          )}
           {!user && (
             <Link 
               to="/auth/register-technician" 
@@ -93,15 +101,6 @@ const Navbar: React.FC = () => {
             How It Works
           </Link>
           <Link to="/about" className={navLinkClass('/about')}>About Us</Link>
-          {user?.role === 'CUSTOMER' && (
-            <Link
-              to="/post-service-request"
-              className="inline-flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm px-4 py-2 rounded-full font-medium transition shadow-md hover:shadow-lg"
-            >
-              <PlusCircle size={15} />
-              Post a Service
-            </Link>
-          )}
         </div>
 
         {/* Right: Auth Buttons or Profile */}

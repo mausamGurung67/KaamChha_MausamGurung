@@ -7,6 +7,11 @@ export const createServiceRequestSchema = z.object({
     category: z.string().min(2, 'Category is required'),
     budget: z.number().positive('Budget must be positive').optional(),
     location: z.string().min(2, 'Location is required'),
+    latitude: z.number().min(-90).max(90).optional(),
+    longitude: z.number().min(-180).max(180).optional(),
+    images: z.array(z.string().url()).max(5, 'Maximum 5 images allowed').optional(),
+    preferredDate: z.string().optional(),
+    preferredTime: z.string().optional(),
   }),
 });
 

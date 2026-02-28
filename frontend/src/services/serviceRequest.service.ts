@@ -12,6 +12,11 @@ export interface ServiceRequestItem {
   category: string;
   budget?: string | null;
   location: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  images?: string[];
+  preferredDate?: string | null;
+  preferredTime?: string | null;
   customerId: string;
   status: ServiceRequestStatus;
   assignedTechnicianId?: string | null;
@@ -43,6 +48,11 @@ export interface CreateServiceRequestPayload {
   category: string;
   budget?: number;
   location: string;
+  latitude?: number;
+  longitude?: number;
+  images?: string[];
+  preferredDate?: string;
+  preferredTime?: string;
 }
 
 // ─── API calls ────────────────────────────────────────────

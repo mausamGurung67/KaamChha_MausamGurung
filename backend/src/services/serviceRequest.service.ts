@@ -7,6 +7,11 @@ export interface CreateServiceRequestData {
   category: string;
   budget?: number;
   location: string;
+  latitude?: number;
+  longitude?: number;
+  images?: string[];
+  preferredDate?: string;
+  preferredTime?: string;
   customerId: string;
 }
 
@@ -30,6 +35,11 @@ export const createServiceRequest = async (
       category: data.category,
       budget: data.budget,
       location: data.location,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      images: data.images || [],
+      preferredDate: data.preferredDate ? new Date(data.preferredDate) : undefined,
+      preferredTime: data.preferredTime,
       customerId: data.customerId,
     },
     include: {

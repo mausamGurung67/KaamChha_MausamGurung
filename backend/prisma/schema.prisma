@@ -387,6 +387,11 @@ model ServiceRequest {
   category              String
   budget                Decimal?             @db.Decimal(10, 2)
   location              String
+  latitude              Decimal?             @db.Decimal(10, 7)
+  longitude             Decimal?             @db.Decimal(10, 7)
+  images                String[]             @default([])
+  preferredDate         DateTime?
+  preferredTime         String?
   customerId            String
   status                ServiceRequestStatus @default(OPEN)
   assignedTechnicianId  String?
