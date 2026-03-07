@@ -11,12 +11,23 @@ import {
   RefreshCw,
   ArrowRight,
   Star,
+  TrendingUp,
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from 'recharts';
 import * as technicianService from '../../services/technician.service';
-import type { TechnicianStats, RecentOrder } from '../../services/technician.service';
+import type { TechnicianStats, RecentOrder, MonthlyData } from '../../services/technician.service';
 import { TechDashboardSkeleton } from '../../components/common/Skeleton';
 import { useAuth } from '../../hooks/useAuth';
-import { getTechnicianRating } from '../../services/review.service';
 import { useReviewSocket } from '../../hooks/useReviewSocket';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
@@ -26,14 +37,18 @@ const TechnicianDashboard: React.FC = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState<TechnicianStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [rating, setRating] = useState<{ averageRating: number; totalReviews: number }>({ averageRating: 0, totalReviews: 0 });
 
   // Real-time review updates
   useReviewSocket({
     onNewReview: (payload) => {
-      setRating({ averageRating: payload.averageRating, totalReviews: payload.totalReviews });
+      setStats(prev => prev ? {
+        ...prev,
+        averageRating: payload.averageRating,
+        totalReviews: payload.totalReviews,
+      } : prev);
       toast(
         `${payload.review.customer.profile?.name || 'A customer'} rated you ${payload.review.rating}/5!`,
         { icon: '⭐', duration: 5000 }
@@ -49,15 +64,7 @@ const TechnicianDashboard: React.FC = () => {
       if (response.success && response.data) {
         setStats(response.data.stats);
         setRecentOrders(response.data.recentOrders);
-      }
-      // Fetch rating
-      if (user?.id) {
-        try {
-          const ratingRes = await getTechnicianRating(user.id);
-          if (ratingRes.success && ratingRes.data) {
-            setRating(ratingRes.data);
-          }
-        } catch { /* no reviews yet */ }
+        setMonthlyData(response.data.monthlyData || []);
       }
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to load dashboard');
@@ -176,32 +183,32 @@ const TechnicianDashboard: React.FC = () => {
   // KYC approved — show full dashboard
   const statCards = [
     {
-      label: 'Total Requests',
-      value: stats.totalOrders,
-      icon: <ClipboardList size={24} className="text-white" />,
-      color: 'bg-blue-500',
-      bgLight: 'bg-blue-50',
+      label: 'Total Earnings',
+      value: `NPR ${stats.totalEarnings.toLocaleString()}`,
+      icon: <IndianRupee size={24} className="text-white" />,
+      color: 'bg-emerald-500',
+      change: `NPR ${stats.thisMonthEarnings.toLocaleString()} this month`,
     },
     {
-      label: 'Pending',
-      value: stats.pendingOrders,
-      icon: <Clock size={24} className="text-white" />,
-      color: 'bg-yellow-500',
-      bgLight: 'bg-yellow-50',
-    },
-    {
-      label: 'Active',
-      value: stats.activeOrders,
-      icon: <Zap size={24} className="text-white" />,
-      color: 'bg-orange-500',
-      bgLight: 'bg-orange-50',
-    },
-    {
-      label: 'Completed',
+      label: 'Completed Jobs',
       value: stats.completedOrders,
       icon: <CheckCircle size={24} className="text-white" />,
-      color: 'bg-green-500',
-      bgLight: 'bg-green-50',
+      color: 'bg-blue-500',
+      change: `of ${stats.totalOrders} total jobs`,
+    },
+    {
+      label: 'Average Rating',
+      value: stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '-',
+      icon: <Star size={24} className="text-white" />,
+      color: 'bg-amber-500',
+      change: `${stats.totalReviews} review${stats.totalReviews !== 1 ? 's' : ''}`,
+    },
+    {
+      label: 'Active Requests',
+      value: stats.activeOrders + stats.pendingOrders,
+      icon: <Zap size={24} className="text-white" />,
+      color: 'bg-orange-500',
+      change: `${stats.pendingOrders} pending, ${stats.activeOrders} in progress`,
     },
   ];
 
@@ -212,63 +219,107 @@ const TechnicianDashboard: React.FC = () => {
         {statCards.map((card) => (
           <div
             key={card.label}
-            className="bg-white rounded-xl shadow-sm border border-gray-100 p-5"
+            className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow"
           >
             <div className="flex items-center justify-between mb-3">
               <div className={`w-11 h-11 ${card.color} rounded-lg flex items-center justify-center`}>
                 {card.icon}
               </div>
+              <TrendingUp size={16} className="text-gray-300" />
             </div>
             <h3 className="text-2xl font-bold text-gray-900">{card.value}</h3>
             <p className="text-sm text-gray-500 mt-1">{card.label}</p>
+            <p className="text-xs text-gray-400 mt-1">{card.change}</p>
           </div>
         ))}
       </div>
 
-      {/* Earnings + Rating Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Earnings card */}
-        <div className="bg-orange-50 border border-orange-200 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-orange-500 text-sm font-medium">Total Earnings</p>
-              <h2 className="text-3xl font-bold mt-1 text-orange-700">NPR {stats.totalEarnings.toLocaleString()}</h2>
-              <p className="text-orange-400 text-sm mt-2">
-                From {stats.completedOrders} completed {stats.completedOrders === 1 ? 'job' : 'jobs'}
-              </p>
+      {/* Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Monthly Earnings Chart */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Earnings</h3>
+          {monthlyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <Tooltip
+                  formatter={(value: number) => [`NPR ${value.toLocaleString()}`, 'Earnings']}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="earnings"
+                  stroke="#f97316"
+                  strokeWidth={2}
+                  fill="url(#earningsGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[260px] text-gray-400 text-sm">
+              No earnings data yet
             </div>
-            <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
-              <IndianRupee size={28} className="text-orange-500" />
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Rating card */}
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-amber-500 text-sm font-medium">Your Rating</p>
-              <div className="flex items-center gap-2 mt-1">
-                <h2 className="text-3xl font-bold text-amber-700">
-                  {rating.totalReviews > 0 ? rating.averageRating : '-'}
-                </h2>
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      size={18}
-                      className={i < Math.round(rating.averageRating) ? 'text-amber-400 fill-amber-400' : 'text-amber-200'}
-                    />
-                  ))}
-                </div>
+        {/* Jobs Completed Chart */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Jobs Completed</h3>
+          {monthlyData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={monthlyData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
+                <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" allowDecimals={false} />
+                <Tooltip
+                  formatter={(value: number) => [value, 'Jobs']}
+                  contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
+                />
+                <Bar dataKey="jobs" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[260px] text-gray-400 text-sm">
+              No job data yet
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Rating Card */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-amber-500 text-sm font-medium">Your Rating</p>
+            <div className="flex items-center gap-2 mt-1">
+              <h2 className="text-3xl font-bold text-amber-700">
+                {stats.totalReviews > 0 ? stats.averageRating.toFixed(1) : '-'}
+              </h2>
+              <div className="flex items-center gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    size={18}
+                    className={i < Math.round(stats.averageRating) ? 'text-amber-400 fill-amber-400' : 'text-amber-200'}
+                  />
+                ))}
               </div>
-              <p className="text-amber-400 text-sm mt-2">
-                {rating.totalReviews} review{rating.totalReviews !== 1 ? 's' : ''}
-              </p>
             </div>
-            <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
-              <Star size={28} className="text-amber-500" />
-            </div>
+            <p className="text-amber-400 text-sm mt-2">
+              {stats.totalReviews} review{stats.totalReviews !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <div className="w-14 h-14 bg-amber-100 rounded-xl flex items-center justify-center">
+            <Star size={28} className="text-amber-500" />
           </div>
         </div>
       </div>
@@ -276,15 +327,15 @@ const TechnicianDashboard: React.FC = () => {
       {/* Recent Orders */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100">
         <div className="p-5 border-b border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Service Requests</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Recent Jobs</h2>
         </div>
         <div className="p-5">
           {recentOrders.length === 0 ? (
             <div className="text-center py-10">
               <ClipboardList size={40} className="text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500 font-medium">No service requests yet</p>
+              <p className="text-gray-500 font-medium">No jobs yet</p>
               <p className="text-gray-400 text-sm mt-1">
-                New requests will appear here once customers book services in your area.
+                New jobs will appear here once customers book services in your area.
               </p>
             </div>
           ) : (

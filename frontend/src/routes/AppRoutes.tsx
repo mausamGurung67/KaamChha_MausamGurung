@@ -37,6 +37,7 @@ import PostServiceRequest from '../pages/customer/PostServiceRequest';
 import MyServiceRequests from '../pages/customer/MyServiceRequests';
 import TechnicianBookings from '../pages/technician/TechnicianBookings';
 import TechnicianServiceRequests from '../pages/technician/TechnicianServiceRequests';
+import TechnicianEarnings from '../pages/technician/TechnicianEarnings';
 import AdminServiceRequests from '../pages/admin/AdminServiceRequests';
 import AdminReviews from '../pages/admin/AdminReviews';
 import ChatPage from '../pages/chat/ChatPage';
@@ -207,6 +208,7 @@ const AppRoutes: React.FC = () => {
         <Route path="dashboard" element={<TechnicianDashboard />} />
         <Route path="requests" element={<TechnicianBookings />} />
         <Route path="customer-requests" element={<TechnicianServiceRequests />} />
+        <Route path="earnings" element={<TechnicianEarnings />} />
         <Route path="chat" element={<ChatPage />} />
         <Route path="reviews" element={<TechnicianReviews />} />
         <Route path="profile" element={<Profile />} />

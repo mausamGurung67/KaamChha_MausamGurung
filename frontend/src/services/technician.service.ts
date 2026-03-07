@@ -8,7 +8,16 @@ export interface TechnicianStats {
   activeOrders: number;
   completedOrders: number;
   totalEarnings: number;
+  thisMonthEarnings: number;
+  averageRating: number;
+  totalReviews: number;
   kycStatus: 'NOT_SUBMITTED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+}
+
+export interface MonthlyData {
+  month: string;
+  earnings: number;
+  jobs: number;
 }
 
 export interface RecentOrder {
@@ -35,6 +44,28 @@ export interface RecentOrder {
 export interface TechnicianDashboardData {
   stats: TechnicianStats;
   recentOrders: RecentOrder[];
+  monthlyData: MonthlyData[];
+}
+
+export interface EarningsData {
+  totalEarnings: number;
+  totalCompletedOrders: number;
+  thisMonthEarnings: number;
+  thisMonthOrders: number;
+  completedPayments: number;
+  completedPaymentCount: number;
+  pendingPayments: number;
+  pendingPaymentCount: number;
+  monthlyChart: MonthlyData[];
+  recentPayments: {
+    id: string;
+    totalAmount: number;
+    technicianAmount: number;
+    completedAt: string;
+    paymentStatus: string;
+    service: { name: string };
+    customer: { profile: { name: string } };
+  }[];
 }
 
 export interface TechnicianProfile {
@@ -53,7 +84,14 @@ export interface TechnicianProfile {
   } | null;
   kyc: {
     status: string;
+    documentType?: string;
+    documentNumber?: string;
+    documentFront?: string;
+    documentBack?: string;
+    selfie?: string;
     rejectionReason?: string;
+    submittedAt?: string;
+    verifiedAt?: string;
   } | null;
   _count: {
     technicianOrders: number;
@@ -75,7 +113,20 @@ export const updateProfile = async (data: {
   name?: string;
   phone?: string;
   address?: string;
+  avatar?: string;
 }): Promise<ApiResponse<{ profile: TechnicianProfile }>> => {
   const response = await api.patch(API_ENDPOINTS.TECHNICIAN.UPDATE_PROFILE, data);
   return response.data;
+};
+
+export const getEarnings = async (): Promise<ApiResponse<EarningsData>> => {
+  const response = await api.get(API_ENDPOINTS.TECHNICIAN.EARNINGS);
+  return response.data;
+};
+
+export const uploadAvatar = async (file: File): Promise<{ url: string; publicId: string }> => {
+  const formData = new FormData();
+  formData.append('image', file);
+  const res = await api.post(`${API_ENDPOINTS.UPLOAD.IMAGE}?folder=avatars`, formData);
+  return res.data.data;
 };
