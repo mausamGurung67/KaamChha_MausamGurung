@@ -128,6 +128,7 @@ export const API_ENDPOINTS = {
   // Reviews
   REVIEWS: {
     CREATE: '/reviews',
+    LATEST: '/reviews/latest',
     TECHNICIAN: (technicianId: string) => `/reviews/technician/${technicianId}`,
     TECHNICIAN_RATING: (technicianId: string) => `/reviews/technician/${technicianId}/rating`,
     SERVICE: (serviceId: string) => `/reviews/service/${serviceId}`,

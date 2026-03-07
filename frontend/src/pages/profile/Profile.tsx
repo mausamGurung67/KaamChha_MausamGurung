@@ -29,17 +29,18 @@ const Profile: React.FC = () => {
   const [loadingKyc, setLoadingKyc] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
-  // Load avatar and KYC on mount for technicians
+  // Load avatar and KYC on mount
   useEffect(() => {
     const loadData = async () => {
-      if (isTechnician) {
-        try {
-          const profileRes = await technicianService.getProfile();
-          if (profileRes.success && profileRes.data) {
-            setAvatar(profileRes.data.profile.profile?.avatar || null);
-          }
-        } catch { /* ignore */ }
+      // Load avatar for all users
+      try {
+        const profileRes = await getProfile();
+        if (profileRes.success && profileRes.data) {
+          setAvatar(profileRes.data.profile?.avatar || null);
+        }
+      } catch { /* ignore */ }
 
+      if (isTechnician) {
         setLoadingKyc(true);
         try {
           const kycRes = await getMyKYC();
@@ -68,9 +69,20 @@ const Profile: React.FC = () => {
 
     setUploadingAvatar(true);
     try {
-      const { url } = await technicianService.uploadAvatar(file);
-      await technicianService.updateProfile({ avatar: url });
-      setAvatar(url);
+      if (isTechnician) {
+        const { url } = await technicianService.uploadAvatar(file);
+        await technicianService.updateProfile({ avatar: url });
+        setAvatar(url);
+      } else {
+        // For customers/admins - use generic upload then update profile
+        const formData = new FormData();
+        formData.append('image', file);
+        const { default: api } = await import('../../services/api');
+        const uploadRes = await api.post(`/upload/image?folder=avatars`, formData);
+        const url = uploadRes.data.data.url;
+        await updateProfile({ avatar: url });
+        setAvatar(url);
+      }
       toast.success('Profile picture updated!');
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to upload picture');
@@ -166,25 +178,24 @@ const Profile: React.FC = () => {
                       {user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : user.email[0].toUpperCase()}
                     </div>
                   )}
-                  {isTechnician && (
-                    <>
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={uploadingAvatar}
-                        className="absolute bottom-0 right-0 w-7 h-7 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
-                        title="Change profile picture"
-                      >
-                        {uploadingAvatar ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
-                      </button>
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/jpeg,image/png,image/webp"
-                        className="hidden"
+                  {/* Avatar upload - available for all users */}
+                  <>
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingAvatar}
+                      className="absolute bottom-0 right-0 w-7 h-7 bg-orange-500 hover:bg-orange-600 text-white rounded-full flex items-center justify-center shadow-md transition-colors"
+                      title="Change profile picture"
+                    >
+                      {uploadingAvatar ? <Loader2 size={14} className="animate-spin" /> : <Camera size={14} />}
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
                         onChange={handleAvatarUpload}
                       />
-                    </>
-                  )}
+                  </>
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold text-gray-900">{user.name || 'User'}</h1>

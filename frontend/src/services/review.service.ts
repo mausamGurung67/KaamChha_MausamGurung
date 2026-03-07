@@ -52,6 +52,11 @@ export interface TechnicianRating {
 
 // ── API calls ─────────────────────────────────────────
 
+export const getLatestReviews = async (limit = 6): Promise<ApiResponse<{ reviews: Review[] }>> => {
+  const res = await api.get(API_ENDPOINTS.REVIEWS.LATEST, { params: { limit } });
+  return res.data;
+};
+
 export const submitReview = async (
   orderId: string,
   rating: number,

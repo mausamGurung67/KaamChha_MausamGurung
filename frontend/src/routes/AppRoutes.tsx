@@ -5,7 +5,7 @@ import DashboardLayout from '../layouts/DashboardLayout';
 import TechnicianLayout from '../layouts/TechnicianLayout';
 import ProtectedRoute from '../components/common/ProtectedRoute';
 import RoleRedirect from '../components/common/RoleRedirect';
-import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList, MessageSquare, FileText, Star } from 'lucide-react';
+import { LayoutDashboard, Users, ShieldCheck, UserCog, User, Layers, UserCheck, ClipboardList, FileText, Star, BarChart3 } from 'lucide-react';
 import type { NavItem } from '../layouts/DashboardLayout';
 
 // Import the pages
@@ -40,6 +40,7 @@ import TechnicianServiceRequests from '../pages/technician/TechnicianServiceRequ
 import TechnicianEarnings from '../pages/technician/TechnicianEarnings';
 import AdminServiceRequests from '../pages/admin/AdminServiceRequests';
 import AdminReviews from '../pages/admin/AdminReviews';
+import PlatformAnalytics from '../pages/admin/PlatformAnalytics';
 import ChatPage from '../pages/chat/ChatPage';
 import KhaltiCallback from '../pages/payment/KhaltiCallback';
 import EsewaCallback from '../pages/payment/EsewaCallback';
@@ -93,9 +94,9 @@ const adminNavItems: NavItem[] = [
     icon: <Star size={20} />,
   },
   {
-    label: 'Chat',
-    path: '/admin/chat',
-    icon: <MessageSquare size={20} />,
+    label: 'Platform Analytics',
+    path: '/admin/analytics',
+    icon: <BarChart3 size={20} />,
   },
   {
     label: 'Profile',
@@ -192,7 +193,7 @@ const AppRoutes: React.FC = () => {
         <Route path="customers" element={<ManageCustomers />} />
         <Route path="service-requests" element={<AdminServiceRequests />} />
         <Route path="reviews" element={<AdminReviews />} />
-        <Route path="chat" element={<ChatPage />} />
+        <Route path="analytics" element={<PlatformAnalytics />} />
         <Route path="profile" element={<Profile />} />
       </Route>
 

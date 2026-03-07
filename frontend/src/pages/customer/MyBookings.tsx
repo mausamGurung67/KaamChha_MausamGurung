@@ -33,6 +33,7 @@ import PaymentModal from '../../components/payment/PaymentModal';
 import ReviewModal from '../../components/review/ReviewModal';
 import CompletionSuccessModal from '../../components/booking/CompletionSuccessModal';
 import Button from '../../components/common/Button';
+import Pagination from '../../components/common/Pagination';
 import toast from 'react-hot-toast';
 import { getOrderReview, type Review } from '../../services/review.service';
 
@@ -62,6 +63,9 @@ const MyBookings: React.FC = () => {
   const [chatBooking, setChatBooking] = useState<Booking | null>(null);
   const [completedBooking, setCompletedBooking] = useState<Booking | null>(null);
   const [orderReviews, setOrderReviews] = useState<Record<string, Review | null>>({});
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Show success banner if redirected from booking
   useEffect(() => {
@@ -83,7 +87,7 @@ const MyBookings: React.FC = () => {
         completed: 'COMPLETED' as BookingStatus,
         cancelled: 'CANCELLED' as BookingStatus,
       };
-      const res = await listBookings({ status: statusMap[activeTab], limit: 50 });
+      const res = await listBookings({ status: statusMap[activeTab], limit: 10, page });
       if (res.success && res.data) {
         let orders = res.data.orders;
         // Client-side filter for "active" tab
@@ -93,6 +97,8 @@ const MyBookings: React.FC = () => {
           );
         }
         setBookings(orders);
+        setTotalPages(res.data.pagination?.totalPages || 1);
+        setTotalItems(res.data.pagination?.total || orders.length);
 
         // Fetch reviews for completed+paid bookings
         const paidBookings = orders.filter(
@@ -119,7 +125,12 @@ const MyBookings: React.FC = () => {
 
   useEffect(() => {
     fetchBookings();
-  }, [activeTab]);
+  }, [activeTab, page]);
+
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setPage(1);
+  };
 
   const handleCancel = async (id: string) => {
     if (!confirm('Are you sure you want to cancel this booking?')) return;
@@ -207,7 +218,7 @@ const MyBookings: React.FC = () => {
             {tabs.map((tab) => (
               <button
                 key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => handleTabChange(tab.key)}
                 className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition ${
                   activeTab === tab.key
                     ? 'bg-white text-orange-600 shadow-sm'
@@ -454,6 +465,17 @@ const MyBookings: React.FC = () => {
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && bookings.length > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              total={totalItems}
+              onPageChange={setPage}
+              label="bookings"
+            />
           )}
         </div>
       </div>

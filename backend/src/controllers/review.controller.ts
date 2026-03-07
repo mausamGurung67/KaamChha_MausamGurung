@@ -150,3 +150,18 @@ export const deleteReview = async (req: Request, res: Response): Promise<void> =
     message: 'Review deleted successfully',
   });
 };
+
+/**
+ * GET /api/reviews/latest
+ * Public endpoint - returns latest approved reviews
+ * Query: ?limit=6
+ */
+export const getLatestReviews = async (req: Request, res: Response): Promise<void> => {
+  const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string), 20) : 6;
+  const reviews = await reviewService.getLatestReviews(limit);
+
+  res.json({
+    success: true,
+    data: { reviews },
+  });
+};

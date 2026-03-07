@@ -506,3 +506,22 @@ export const deleteReview = async (id: string): Promise<void> => {
 
   await prisma.review.delete({ where: { id } });
 };
+
+// ── Public: Get latest approved reviews ───────────────
+
+export const getLatestReviews = async (limit = 6): Promise<any[]> => {
+  return prisma.review.findMany({
+    where: { isApproved: true },
+    include: {
+      customer: {
+        select: {
+          id: true,
+          profile: { select: { name: true, avatar: true } },
+        },
+      },
+      service: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+  });
+};

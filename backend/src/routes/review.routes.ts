@@ -13,6 +13,8 @@ import {
 const router = Router();
 
 // Public routes (no auth required) — view reviews
+router.get('/latest', reviewController.getLatestReviews);
+
 router.get(
   '/technician/:technicianId',
   validate(getTechnicianReviewsSchema),

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ChevronDown, ChevronUp, ArrowRight, Star, Phone, Mail, MapPin, Facebook, Twitter } from 'lucide-react';
+import { ChevronDown, ChevronUp, ArrowRight, Star, Phone, Mail, MapPin, Facebook, Twitter, Loader2 } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
 import { listCategories, type Category } from '../../services/category.service';
+import { getLatestReviews, type Review } from '../../services/review.service';
 
 // Category image imports
 import catPlumbing from '../../assets/images/categories/plumbing.png';
@@ -43,6 +44,8 @@ const categoryImageMap: Record<string, string> = {
 const Home: React.FC = () => {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -64,30 +67,20 @@ const Home: React.FC = () => {
     });
   }, []);
 
+  // Fetch latest reviews from API
+  useEffect(() => {
+    setLoadingReviews(true);
+    getLatestReviews(6)
+      .then((res) => {
+        if (res.success && res.data) setReviews(res.data.reviews);
+      })
+      .catch(() => { /* ignore */ })
+      .finally(() => setLoadingReviews(false));
+  }, []);
+
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index);
   };
-
-  const testimonials = [
-    {
-      quote: "Michael is very skilled and highly professional. Understood the assignment, followed instructions, and was also able to be flexible and creative. Would definitely hire him again!",
-      name: "Mausam Gurung",
-      date: "Jan 14, 2025",
-      rating: 5
-    },
-    {
-      quote: "Michael is very skilled and highly professional. Understood the assignment, followed instructions, and was also able to be flexible and creative. Would definitely hire him again!",
-      name: "Mausam Gurung",
-      date: "Jan 14, 2025",
-      rating: 5
-    },
-    {
-      quote: "Michael is very skilled and highly professional. Understood the assignment, followed instructions, and was also able to be flexible and creative. Would definitely hire him again!",
-      name: "Mausam Gurung",
-      date: "Jan 14, 2025",
-      rating: 5
-    }
-  ];
 
   const faqs = [
     { question: "Which cities/areas are currently covered?", answer: "We currently operate in major cities across Nepal including Kathmandu, Pokhara, Biratnagar, Itahari, and more. We're expanding rapidly to cover more areas." },
@@ -367,42 +360,63 @@ const Home: React.FC = () => {
           </div>
 
           {/* Testimonial Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((item, index) => (
-              <div 
-                key={index} 
-                className="bg-white p-8 rounded-3xl border-2 border-gray-100 shadow-md hover:shadow-2xl hover:border-orange-200 transition-all duration-300"
-              >
-                {/* Quote Icon */}
-                <div className="text-orange-500 text-5xl font-serif mb-5">"</div>
-                
-                {/* Quote Text */}
-                <p className="text-gray-700 text-base leading-relaxed mb-8">
-                  "{item.quote}"
-                </p>
+          {loadingReviews ? (
+            <div className="flex items-center justify-center py-16">
+              <Loader2 size={32} className="animate-spin text-orange-500" />
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {reviews.slice(0, 3).map((review) => (
+                <div 
+                  key={review.id} 
+                  className="bg-white p-8 rounded-3xl border-2 border-gray-100 shadow-md hover:shadow-2xl hover:border-orange-200 transition-all duration-300"
+                >
+                  {/* Quote Icon */}
+                  <div className="text-orange-500 text-5xl font-serif mb-5">"</div>
+                  
+                  {/* Quote Text */}
+                  <p className="text-gray-700 text-base leading-relaxed mb-8">
+                    "{review.comment || 'Great service experience!'}"
+                  </p>
 
-                {/* Author Info */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                      <span className="text-orange-500 font-bold text-base">
-                        {item.name.charAt(0)}
-                      </span>
+                  {/* Service Tag */}
+                  {review.service && (
+                    <p className="text-xs text-orange-500 font-medium mb-4">{review.service.name}</p>
+                  )}
+
+                  {/* Author Info */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center overflow-hidden">
+                        {review.customer?.profile?.avatar ? (
+                          <img src={review.customer.profile.avatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-orange-500 font-bold text-base">
+                            {(review.customer?.profile?.name || 'U').charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-base">{review.customer?.profile?.name || 'Customer'}</h4>
+                        <p className="text-gray-500 text-sm">
+                          {new Date(review.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-base">{item.name}</h4>
-                      <p className="text-gray-500 text-sm">{item.date}</p>
+                    <div className="flex text-yellow-400">
+                      {[...Array(review.rating)].map((_, i) => (
+                        <Star key={i} size={16} fill="currentColor" />
+                      ))}
                     </div>
-                  </div>
-                  <div className="flex text-yellow-400">
-                    {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} size={16} fill="currentColor" />
-                    ))}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <p className="text-gray-400 text-lg">No reviews yet. Be the first to share your experience!</p>
+            </div>
+          )}
         </div>
       </section>
 

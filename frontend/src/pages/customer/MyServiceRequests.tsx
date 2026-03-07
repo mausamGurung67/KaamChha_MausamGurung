@@ -11,6 +11,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import Navbar from '../../components/common/Navbar';
+import Pagination from '../../components/common/Pagination';
 import { ServiceRequestListSkeleton } from '../../components/common/Skeleton';
 import {
   getMyServiceRequests,
@@ -31,6 +32,8 @@ const MyServiceRequests: React.FC = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState<ServiceRequestItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
 
   const fetchRequests = useCallback(async () => {
     setLoading(true);
@@ -72,6 +75,9 @@ const MyServiceRequests: React.FC = () => {
     }
   };
 
+  const totalPages = Math.ceil(requests.length / ITEMS_PER_PAGE);
+  const paginatedRequests = requests.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -108,7 +114,7 @@ const MyServiceRequests: React.FC = () => {
             </div>
           ) : (
             <div className="grid gap-4">
-              {requests.map((req) => (
+              {paginatedRequests.map((req) => (
                 <div
                   key={req.id}
                   className="bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 hover:shadow-md transition"
@@ -176,6 +182,17 @@ const MyServiceRequests: React.FC = () => {
                 </div>
               ))}
             </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && requests.length > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              total={requests.length}
+              onPageChange={setPage}
+              label="requests"
+            />
           )}
         </div>
       </div>

@@ -30,6 +30,7 @@ import {
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
 import { TabBarSkeleton, BookingCardSkeleton } from '../../components/common/Skeleton';
 import Button from '../../components/common/Button';
+import Pagination from '../../components/common/Pagination';
 import toast from 'react-hot-toast';
 
 const statusLabels: Record<string, string> = {
@@ -61,6 +62,8 @@ const TechnicianBookings: React.FC = () => {
   const [beforePreviews, setBeforePreviews] = useState<string[]>([]);
   const [afterPreviews, setAfterPreviews] = useState<string[]>([]);
   const [uploadProgress, setUploadProgress] = useState('');
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -90,6 +93,9 @@ const TechnicianBookings: React.FC = () => {
       default: return true;
     }
   });
+
+  const totalPages = Math.ceil(filteredBookings.length / ITEMS_PER_PAGE);
+  const paginatedBookings = filteredBookings.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   const handleAccept = async (id: string) => {
     setActionLoading(id);
@@ -200,7 +206,7 @@ const TechnicianBookings: React.FC = () => {
         {tabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => { setActiveTab(tab.key); setPage(1); }}
             className={`flex-1 py-2.5 text-sm font-medium rounded-lg transition flex items-center justify-center gap-1.5 ${
               activeTab === tab.key
                 ? 'bg-white text-orange-600 shadow-sm'
@@ -246,7 +252,7 @@ const TechnicianBookings: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredBookings.map((b) => (
+          {paginatedBookings.map((b) => (
             <div
               key={b.id}
               onClick={() => setSelectedBooking(selectedBooking?.id === b.id ? null : b)}
@@ -444,6 +450,17 @@ const TechnicianBookings: React.FC = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && filteredBookings.length > 0 && (
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          total={filteredBookings.length}
+          onPageChange={setPage}
+          label="bookings"
+        />
       )}
 
       {/* Reject Modal */}
