@@ -20,6 +20,7 @@ import {
 import * as technicianService from '../../services/technician.service';
 import type { EarningsData } from '../../services/technician.service';
 import Button from '../../components/common/Button';
+import { DashboardStatsSkeleton, Skeleton } from '../../components/common/Skeleton';
 
 const TechnicianEarnings: React.FC = () => {
   const [data, setData] = useState<EarningsData | null>(null);
@@ -47,14 +48,50 @@ const TechnicianEarnings: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-pulse">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 p-5 h-32" />
-          ))}
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-64 mt-2" />
         </div>
-        <div className="bg-white rounded-xl border border-gray-100 h-80" />
-        <div className="bg-white rounded-xl border border-gray-100 h-64" />
+
+        {/* 4 Stat Cards */}
+        <DashboardStatsSkeleton count={4} cols="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" />
+
+        {/* Chart skeleton */}
+        <div className="bg-white rounded-xl border border-gray-100 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <Skeleton className="h-80 w-full" rounded="xl" />
+        </div>
+
+        {/* Table skeleton */}
+        <div className="bg-white rounded-xl border border-gray-100">
+          <div className="p-5 border-b border-gray-100">
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <div className="p-5 space-y-3">
+            {/* Table header */}
+            <div className="grid grid-cols-6 gap-4 pb-3 border-b border-gray-100">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="h-3 w-16" />
+              ))}
+            </div>
+            {/* Table rows */}
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="grid grid-cols-6 gap-4 py-3">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-16" rounded="full" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
