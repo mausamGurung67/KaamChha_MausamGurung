@@ -250,7 +250,7 @@ const AdminDashboardHome: React.FC = () => {
                     border: '1px solid #e5e7eb',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                   }}
-                  formatter={(value: number) => [`Rs. ${value.toLocaleString()}`, 'Revenue']}
+                  formatter={(value: number | undefined) => [`Rs. ${value?.toLocaleString() || '0'}`, 'Revenue']}
                 />
                 <Area
                   type="monotone"
@@ -382,7 +382,7 @@ const AdminDashboardHome: React.FC = () => {
                   paddingAngle={4}
                   dataKey="value"
                   nameKey="name"
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                   labelLine={false}
                 >
                   {orderStatusData.map((_: any, index: number) => (
@@ -411,37 +411,6 @@ const AdminDashboardHome: React.FC = () => {
           )}
         </div>
       </div>
-
-      {/* ── Revenue Summary Cards ──────────────────────── */}
-      {revenueData?.summary && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Avg Order Value"
-            value={`Rs. ${Math.round(revenueData.summary.averageOrderValue).toLocaleString()}`}
-            icon={<DollarSign size={22} className="text-orange-600" />}
-            color="bg-orange-50"
-          />
-          <StatCard
-            title="Paid Orders"
-            value={revenueData.summary.totalOrders}
-            icon={<CheckCircle size={22} className="text-green-600" />}
-            color="bg-green-50"
-          />
-          <StatCard
-            title="Payments"
-            value={stats.payments.total}
-            subtitle={`${stats.payments.successful} successful`}
-            icon={<CreditCard size={22} className="text-blue-600" />}
-            color="bg-blue-50"
-          />
-          <StatCard
-            title="Admins"
-            value={stats.users.admins}
-            icon={<ShieldCheck size={22} className="text-purple-600" />}
-            color="bg-purple-50"
-          />
-        </div>
-      )}
     </div>
   );
 };
