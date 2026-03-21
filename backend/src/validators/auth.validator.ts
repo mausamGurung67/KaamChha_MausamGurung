@@ -1,12 +1,16 @@
 import { z } from 'zod';
 import { UserRole } from '@prisma/client';
 
+const phoneSchema = z.string()
+  .regex(/^\d{10}$/, 'Phone number must be exactly 10 digits')
+  .regex(/^(97|98)\d{8}$/, 'Phone number must start with 97 or 98');
+
 export const registerSchema = z.object({
   body: z.object({
     email: z.string().email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     name: z.string().min(2, 'Name must be at least 2 characters'),
-    phone: z.string().optional(),
+    phone: phoneSchema.optional(),
     role: z.nativeEnum(UserRole).optional(),
   }),
 });

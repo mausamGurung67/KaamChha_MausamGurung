@@ -4,16 +4,34 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
+import { validateEmail, type FieldErrors } from '../../utils/validator';
 import '../../styles/auth.css';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login, isLoading, error, clearError, user } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+
+    const errors: FieldErrors = {};
+
+    const emailErr = validateEmail(formData.email);
+    if (emailErr) errors.email = emailErr;
+
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error(Object.values(errors)[0]);
+      return;
+    }
     
     try {
       await login({ email: formData.email, password: formData.password });
@@ -68,7 +86,15 @@ const Login: React.FC = () => {
           type="email"
           placeholder="Enter your email"
           value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
+          onChange={(e) => {
+            setFormData({...formData, email: e.target.value});
+            if (fieldErrors.email) setFieldErrors(prev => { const n = { ...prev }; delete n.email; return n; });
+          }}
+          onBlur={() => {
+            const err = validateEmail(formData.email);
+            setFieldErrors(prev => { const n = { ...prev }; if (err) n.email = err; else delete n.email; return n; });
+          }}
+          error={fieldErrors.email}
           required
         />
         
@@ -77,7 +103,11 @@ const Login: React.FC = () => {
           type="password"
           placeholder="Enter your password"
           value={formData.password}
-          onChange={(e) => setFormData({...formData, password: e.target.value})}
+          onChange={(e) => {
+            setFormData({...formData, password: e.target.value});
+            if (fieldErrors.password) setFieldErrors(prev => { const n = { ...prev }; delete n.password; return n; });
+          }}
+          error={fieldErrors.password}
           required
         />
 

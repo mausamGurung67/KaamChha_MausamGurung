@@ -4,6 +4,7 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { API_ENDPOINTS, MAX_FILE_SIZE, ACCEPTED_IMAGE_TYPES } from '../../utils/constants';
+import { validateDocumentNumber, type FieldErrors } from '../../utils/validator';
 import toast from 'react-hot-toast';
 import '../../styles/auth.css';
 
@@ -30,6 +31,7 @@ const TechnicianKycUpload: React.FC = () => {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   const [documentFront, setDocumentFront] = useState<UploadedFile>({
     file: null, preview: '', url: '', uploading: false,
@@ -113,14 +115,21 @@ const TechnicianKycUpload: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!documentNumber.trim()) {
-      setError('Please enter your document number');
-      toast.error('Please enter your document number');
-      return;
-    }
+    const errors: FieldErrors = {};
+
+    const docErr = validateDocumentNumber(documentNumber, documentType);
+    if (docErr) errors.documentNumber = docErr;
+
     if (!allUploaded) {
-      setError('Please upload all required documents');
-      toast.error('Please upload all required documents');
+      errors.documents = 'Please upload all required documents';
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      setError(firstError);
+      toast.error(firstError);
       return;
     }
 
@@ -282,7 +291,21 @@ const TechnicianKycUpload: React.FC = () => {
           type="text"
           placeholder="Enter your document number"
           value={documentNumber}
-          onChange={(e) => setDocumentNumber(e.target.value)}
+          onChange={(e) => {
+            setDocumentNumber(e.target.value);
+            if (fieldErrors.documentNumber) {
+              setFieldErrors((prev) => { const n = { ...prev }; delete n.documentNumber; return n; });
+            }
+          }}
+          onBlur={() => {
+            const err = validateDocumentNumber(documentNumber, documentType);
+            setFieldErrors((prev) => {
+              const n = { ...prev };
+              if (err) n.documentNumber = err; else delete n.documentNumber;
+              return n;
+            });
+          }}
+          error={fieldErrors.documentNumber}
           required
         />
 

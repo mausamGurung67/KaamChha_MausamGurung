@@ -8,6 +8,7 @@ import { createServiceRequest } from '../../services/serviceRequest.service';
 import { listCategories, type Category } from '../../services/category.service';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../utils/constants';
+import { validateMinLength, validateRequired, validatePositiveNumber, type FieldErrors } from '../../utils/validator';
 import toast from 'react-hot-toast';
 
 const MAX_IMAGES = 5;
@@ -22,6 +23,7 @@ const PostServiceRequest: React.FC = () => {
   const [mapPosition, setMapPosition] = useState<LatLng | null>(null);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -108,8 +110,29 @@ const PostServiceRequest: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.title.trim() || !form.description.trim() || !form.category || !form.location.trim()) {
-      toast.error('Please fill in all required fields');
+    const errors: FieldErrors = {};
+
+    const titleErr = validateMinLength(form.title, 3, 'Title');
+    if (titleErr) errors.title = titleErr;
+
+    const descErr = validateMinLength(form.description, 10, 'Description');
+    if (descErr) errors.description = descErr;
+
+    const catErr = validateRequired(form.category, 'Category');
+    if (catErr) errors.category = catErr;
+
+    const locErr = validateRequired(form.location, 'Location');
+    if (locErr) errors.location = locErr;
+
+    if (form.budget) {
+      const budgetErr = validatePositiveNumber(form.budget, 'Budget');
+      if (budgetErr) errors.budget = budgetErr;
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error(Object.values(errors)[0]);
       return;
     }
 
@@ -174,11 +197,19 @@ const PostServiceRequest: React.FC = () => {
                 name="title"
                 type="text"
                 value={form.title}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (fieldErrors.title) setFieldErrors(prev => { const n = { ...prev }; delete n.title; return n; });
+                }}
+                onBlur={() => {
+                  const err = validateMinLength(form.title, 3, 'Title');
+                  setFieldErrors(prev => { const n = { ...prev }; if (err) n.title = err; else delete n.title; return n; });
+                }}
                 placeholder="e.g. Fix leaky kitchen faucet"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm"
+                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.title ? 'border-red-400' : 'border-gray-300'} focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm`}
                 required
               />
+              {fieldErrors.title && <p className="text-red-500 text-xs mt-1">{fieldErrors.title}</p>}
             </div>
 
             {/* Description */}
@@ -190,12 +221,20 @@ const PostServiceRequest: React.FC = () => {
                 id="description"
                 name="description"
                 value={form.description}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (fieldErrors.description) setFieldErrors(prev => { const n = { ...prev }; delete n.description; return n; });
+                }}
+                onBlur={() => {
+                  const err = validateMinLength(form.description, 10, 'Description');
+                  setFieldErrors(prev => { const n = { ...prev }; if (err) n.description = err; else delete n.description; return n; });
+                }}
                 placeholder="Describe the issue or service you need in detail..."
                 rows={5}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm resize-none"
+                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.description ? 'border-red-400' : 'border-gray-300'} focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm resize-none`}
                 required
               />
+              {fieldErrors.description && <p className="text-red-500 text-xs mt-1">{fieldErrors.description}</p>}
             </div>
 
             {/* Images */}
@@ -265,8 +304,11 @@ const PostServiceRequest: React.FC = () => {
                 id="category"
                 name="category"
                 value={form.category}
-                onChange={handleChange}
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm bg-white"
+                onChange={(e) => {
+                  handleChange(e);
+                  if (fieldErrors.category) setFieldErrors(prev => { const n = { ...prev }; delete n.category; return n; });
+                }}
+                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.category ? 'border-red-400' : 'border-gray-300'} focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm bg-white`}
                 required
               >
                 <option value="">Select a category</option>
@@ -276,6 +318,7 @@ const PostServiceRequest: React.FC = () => {
                   </option>
                 ))}
               </select>
+              {fieldErrors.category && <p className="text-red-500 text-xs mt-1">{fieldErrors.category}</p>}
             </div>
 
             {/* Budget */}
@@ -290,10 +333,20 @@ const PostServiceRequest: React.FC = () => {
                 min="0"
                 step="0.01"
                 value={form.budget}
-                onChange={handleChange}
+                onChange={(e) => {
+                  handleChange(e);
+                  if (fieldErrors.budget) setFieldErrors(prev => { const n = { ...prev }; delete n.budget; return n; });
+                }}
+                onBlur={() => {
+                  if (form.budget) {
+                    const err = validatePositiveNumber(form.budget, 'Budget');
+                    setFieldErrors(prev => { const n = { ...prev }; if (err) n.budget = err; else delete n.budget; return n; });
+                  }
+                }}
                 placeholder="e.g. 1500"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm"
+                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.budget ? 'border-red-400' : 'border-gray-300'} focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm`}
               />
+              {fieldErrors.budget && <p className="text-red-500 text-xs mt-1">{fieldErrors.budget}</p>}
             </div>
 
             {/* Preferred Date & Time */}
@@ -338,9 +391,12 @@ const PostServiceRequest: React.FC = () => {
                   name="location"
                   type="text"
                   value={form.location}
-                  onChange={handleChange}
+                  onChange={(e) => {
+                    handleChange(e);
+                    if (fieldErrors.location) setFieldErrors(prev => { const n = { ...prev }; delete n.location; return n; });
+                  }}
                   placeholder="e.g. Itahari-13, Sunsari"
-                  className="flex-1 px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm"
+                  className={`flex-1 px-4 py-3 rounded-xl border ${fieldErrors.location ? 'border-red-400' : 'border-gray-300'} focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none transition text-sm`}
                   required
                 />
                 <button
@@ -367,6 +423,7 @@ const PostServiceRequest: React.FC = () => {
                   />
                 </div>
               )}
+              {fieldErrors.location && <p className="text-red-500 text-xs mt-1">{fieldErrors.location}</p>}
             </div>
 
             {/* Submit */}

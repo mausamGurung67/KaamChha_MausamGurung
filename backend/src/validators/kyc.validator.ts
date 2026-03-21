@@ -4,7 +4,7 @@ import { DocumentType } from '@prisma/client';
 export const submitKYCSchema = z.object({
   body: z.object({
     documentType: z.nativeEnum(DocumentType),
-    documentNumber: z.string().min(1, 'Document number is required'),
+    documentNumber: z.string().min(5, 'Document number must be at least 5 characters'),
     documentFront: z.string().url('Invalid document front URL'),
     documentBack: z.string().url('Invalid document back URL'),
     selfie: z.string().url('Invalid selfie URL'),

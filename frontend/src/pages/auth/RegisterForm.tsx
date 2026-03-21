@@ -5,6 +5,13 @@ import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
 import type { UserRole } from '../../types/auth.types';
 import toast from 'react-hot-toast';
+import {
+  validateName,
+  validateEmail,
+  validatePassword,
+  validateConfirmPassword,
+  type FieldErrors,
+} from '../../utils/validator';
 import '../../styles/auth.css';
 
 interface LocationState {
@@ -29,28 +36,79 @@ const Register: React.FC = () => {
   });
   const [agreed, setAgreed] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  const validateField = (field: string, value: string) => {
+    let err: string | null = null;
+    switch (field) {
+      case 'firstName':
+        err = validateName(value, 'First name');
+        break;
+      case 'lastName':
+        err = validateName(value, 'Last name');
+        break;
+      case 'email':
+        err = validateEmail(value);
+        break;
+      case 'password':
+        err = validatePassword(value);
+        break;
+      case 'confirmPassword':
+        err = validateConfirmPassword(formData.password, value);
+        break;
+    }
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (err) next[field] = err;
+      else delete next[field];
+      return next;
+    });
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
     setValidationError('');
 
-    // Validation
+    // Validate all fields
+    const errors: FieldErrors = {};
+
+    const firstName = validateName(formData.firstName, 'First name');
+    if (firstName) errors.firstName = firstName;
+
+    const lastName = validateName(formData.lastName, 'Last name');
+    if (lastName) errors.lastName = lastName;
+
+    const email = validateEmail(formData.email);
+    if (email) errors.email = email;
+
+    const password = validatePassword(formData.password);
+    if (password) errors.password = password;
+
+    const confirmPassword = validateConfirmPassword(formData.password, formData.confirmPassword);
+    if (confirmPassword) errors.confirmPassword = confirmPassword;
+
     if (!agreed) {
-      setValidationError('Please accept terms and conditions');
-      toast.error('Please accept terms and conditions');
-      return;
+      errors.terms = 'Please accept terms and conditions';
     }
 
-    if (formData.password !== formData.confirmPassword) {
-      setValidationError('Passwords do not match');
-      toast.error('Passwords do not match');
-      return;
-    }
+    setFieldErrors(errors);
 
-    if (formData.password.length < 8) {
-      setValidationError('Password must be at least 8 characters');
-      toast.error('Password must be at least 8 characters');
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      setValidationError(firstError);
+      toast.error(firstError);
       return;
     }
 
@@ -98,7 +156,9 @@ const Register: React.FC = () => {
             placeholder="Enter your first name" 
             wrapperStyle={{ flex: 1 }}
             value={formData.firstName}
-            onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+            onChange={(e) => handleChange('firstName', e.target.value)}
+            onBlur={() => validateField('firstName', formData.firstName)}
+            error={fieldErrors.firstName}
             required
           />
           <Input 
@@ -106,7 +166,9 @@ const Register: React.FC = () => {
             placeholder="Enter your last name" 
             wrapperStyle={{ flex: 1 }}
             value={formData.lastName}
-            onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+            onChange={(e) => handleChange('lastName', e.target.value)}
+            onBlur={() => validateField('lastName', formData.lastName)}
+            error={fieldErrors.lastName}
             required
           />
         </div>
@@ -116,7 +178,9 @@ const Register: React.FC = () => {
           type="email" 
           placeholder="Enter your email address"
           value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
+          onChange={(e) => handleChange('email', e.target.value)}
+          onBlur={() => validateField('email', formData.email)}
+          error={fieldErrors.email}
           required
         />
         <Input 
@@ -124,7 +188,9 @@ const Register: React.FC = () => {
           type="password" 
           placeholder="Enter your password (min 8 characters)"
           value={formData.password}
-          onChange={(e) => setFormData({...formData, password: e.target.value})}
+          onChange={(e) => handleChange('password', e.target.value)}
+          onBlur={() => validateField('password', formData.password)}
+          error={fieldErrors.password}
           required
         />
         <Input 
@@ -132,22 +198,36 @@ const Register: React.FC = () => {
           type="password" 
           placeholder="Confirm your password"
           value={formData.confirmPassword}
-          onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+          onChange={(e) => handleChange('confirmPassword', e.target.value)}
+          onBlur={() => validateField('confirmPassword', formData.confirmPassword)}
+          error={fieldErrors.confirmPassword}
           required
         />
 
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: fieldErrors.terms ? '8px' : '24px' }}>
           <input 
             type="checkbox" 
             id="terms" 
             checked={agreed} 
-            onChange={(e) => setAgreed(e.target.checked)}
+            onChange={(e) => {
+              setAgreed(e.target.checked);
+              if (e.target.checked) {
+                setFieldErrors((prev) => {
+                  const next = { ...prev };
+                  delete next.terms;
+                  return next;
+                });
+              }
+            }}
             style={{ width: '16px', height: '16px', accentColor: 'var(--primary-color)', marginRight: '8px' }}
           />
           <label htmlFor="terms" style={{ fontSize: '14px', color: '#333' }}>
             I accept the <span style={{ color: 'var(--primary-color)' }}>Terms and Conditions</span> & <span style={{ color: 'var(--primary-color)' }}>Privacy Policy</span>.
           </label>
         </div>
+        {fieldErrors.terms && (
+          <p style={{ color: '#dc2626', fontSize: '12px', marginBottom: '16px', marginTop: '-4px' }}>{fieldErrors.terms}</p>
+        )}
 
         <Button type="submit" isLoading={isLoading} style={{ width: '120px' }}>
           Continue

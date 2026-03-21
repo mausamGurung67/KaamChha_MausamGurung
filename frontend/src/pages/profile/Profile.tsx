@@ -9,6 +9,7 @@ import * as technicianService from '../../services/technician.service';
 import type { TechnicianProfile } from '../../services/technician.service';
 import { getMyKYC, type KYCData } from '../../services/kyc.service';
 import { STORAGE_KEYS, ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from '../../utils/constants';
+import { validateName, validatePhone, validateAddress, sanitizePhone, type FieldErrors } from '../../utils/validator';
 import Button from '../../components/common/Button';
 
 const Profile: React.FC = () => {
@@ -28,6 +29,7 @@ const Profile: React.FC = () => {
   const [kycData, setKycData] = useState<KYCData | null>(null);
   const [loadingKyc, setLoadingKyc] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   // Load avatar and KYC on mount
   useEffect(() => {
@@ -116,6 +118,31 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = async () => {
+    // Validate fields before saving
+    const errors: FieldErrors = {};
+
+    if (form.name.trim()) {
+      const nameErr = validateName(form.name, 'Full name');
+      if (nameErr) errors.name = nameErr;
+    }
+
+    if (form.phone.trim()) {
+      const phoneErr = validatePhone(form.phone);
+      if (phoneErr) errors.phone = phoneErr;
+    }
+
+    if (form.address.trim()) {
+      const addrErr = validateAddress(form.address);
+      if (addrErr) errors.address = addrErr;
+    }
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error(Object.values(errors)[0]);
+      return;
+    }
+
     setSaving(true);
     try {
       const payload: UpdateProfilePayload = {};
@@ -254,10 +281,24 @@ const Profile: React.FC = () => {
                   <input
                     type="text"
                     value={form.name}
-                    onChange={(e) => setForm(p => ({ ...p, name: e.target.value }))}
+                    onChange={(e) => {
+                      setForm(p => ({ ...p, name: e.target.value }));
+                      if (fieldErrors.name) setFieldErrors(prev => { const n = { ...prev }; delete n.name; return n; });
+                    }}
+                    onBlur={() => {
+                      if (form.name.trim()) {
+                        const err = validateName(form.name, 'Full name');
+                        setFieldErrors(prev => {
+                          const n = { ...prev };
+                          if (err) n.name = err; else delete n.name;
+                          return n;
+                        });
+                      }
+                    }}
                     placeholder="Your full name"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                    className={`w-full px-4 py-2.5 rounded-lg border ${fieldErrors.name ? 'border-red-400' : 'border-gray-200'} text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent`}
                   />
+                  {fieldErrors.name && <p className="text-red-500 text-xs mt-1">{fieldErrors.name}</p>}
                 </div>
 
                 {/* Email (read-only) */}
@@ -278,10 +319,25 @@ const Profile: React.FC = () => {
                   <input
                     type="tel"
                     value={form.phone}
-                    onChange={(e) => setForm(p => ({ ...p, phone: e.target.value }))}
-                    placeholder="Your phone number"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                    onChange={(e) => {
+                      setForm(p => ({ ...p, phone: sanitizePhone(e.target.value) }));
+                      if (fieldErrors.phone) setFieldErrors(prev => { const n = { ...prev }; delete n.phone; return n; });
+                    }}
+                    onBlur={() => {
+                      if (form.phone.trim()) {
+                        const err = validatePhone(form.phone);
+                        setFieldErrors(prev => {
+                          const n = { ...prev };
+                          if (err) n.phone = err; else delete n.phone;
+                          return n;
+                        });
+                      }
+                    }}
+                    placeholder="98XXXXXXXX"
+                    maxLength={10}
+                    className={`w-full px-4 py-2.5 rounded-lg border ${fieldErrors.phone ? 'border-red-400' : 'border-gray-200'} text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent`}
                   />
+                  {fieldErrors.phone && <p className="text-red-500 text-xs mt-1">{fieldErrors.phone}</p>}
                 </div>
 
                 {/* Address */}
@@ -290,10 +346,14 @@ const Profile: React.FC = () => {
                   <input
                     type="text"
                     value={form.address}
-                    onChange={(e) => setForm(p => ({ ...p, address: e.target.value }))}
+                    onChange={(e) => {
+                      setForm(p => ({ ...p, address: e.target.value }));
+                      if (fieldErrors.address) setFieldErrors(prev => { const n = { ...prev }; delete n.address; return n; });
+                    }}
                     placeholder="Your address"
-                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                    className={`w-full px-4 py-2.5 rounded-lg border ${fieldErrors.address ? 'border-red-400' : 'border-gray-200'} text-sm focus:ring-2 focus:ring-orange-400 focus:border-transparent`}
                   />
+                  {fieldErrors.address && <p className="text-red-500 text-xs mt-1">{fieldErrors.address}</p>}
                 </div>
 
                 {/* Actions */}

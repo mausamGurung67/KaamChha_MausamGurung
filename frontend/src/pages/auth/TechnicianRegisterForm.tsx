@@ -4,6 +4,15 @@ import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
+import {
+  validateName,
+  validateEmail,
+  validatePhone,
+  validatePassword,
+  validateConfirmPassword,
+  sanitizePhone,
+  type FieldErrors,
+} from '../../utils/validator';
 import '../../styles/auth.css';
 
 const TechnicianRegisterForm: React.FC = () => {
@@ -11,6 +20,7 @@ const TechnicianRegisterForm: React.FC = () => {
   const { registerTechnician, isLoading, error, clearError } = useAuth();
 
   const [validationError, setValidationError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -20,32 +30,79 @@ const TechnicianRegisterForm: React.FC = () => {
     confirmPassword: '',
   });
 
+  const validateField = (field: string, value: string) => {
+    let err: string | null = null;
+    switch (field) {
+      case 'firstName':
+        err = validateName(value, 'First name');
+        break;
+      case 'lastName':
+        err = validateName(value, 'Last name');
+        break;
+      case 'email':
+        err = validateEmail(value);
+        break;
+      case 'phone':
+        err = validatePhone(value);
+        break;
+      case 'password':
+        err = validatePassword(value);
+        break;
+      case 'confirmPassword':
+        err = validateConfirmPassword(formData.password, value);
+        break;
+    }
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (err) next[field] = err;
+      else delete next[field];
+      return next;
+    });
+  };
+
+  const handleChange = (field: string, value: string) => {
+    const newValue = field === 'phone' ? sanitizePhone(value) : value;
+    setFormData((prev) => ({ ...prev, [field]: newValue }));
+    // Clear field error on change
+    if (fieldErrors[field]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+  };
+
   const validate = (): boolean => {
-    if (!formData.firstName.trim() || !formData.lastName.trim()) {
-      setValidationError('Please enter your full name');
-      toast.error('Please enter your full name');
+    const errors: FieldErrors = {};
+
+    const firstName = validateName(formData.firstName, 'First name');
+    if (firstName) errors.firstName = firstName;
+
+    const lastName = validateName(formData.lastName, 'Last name');
+    if (lastName) errors.lastName = lastName;
+
+    const email = validateEmail(formData.email);
+    if (email) errors.email = email;
+
+    const phone = validatePhone(formData.phone);
+    if (phone) errors.phone = phone;
+
+    const password = validatePassword(formData.password);
+    if (password) errors.password = password;
+
+    const confirmPassword = validateConfirmPassword(formData.password, formData.confirmPassword);
+    if (confirmPassword) errors.confirmPassword = confirmPassword;
+
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      setValidationError(firstError);
+      toast.error(firstError);
       return false;
     }
-    if (!formData.email.trim()) {
-      setValidationError('Please enter your email');
-      toast.error('Please enter your email');
-      return false;
-    }
-    if (!formData.phone.trim()) {
-      setValidationError('Please enter your phone number');
-      toast.error('Please enter your phone number');
-      return false;
-    }
-    if (formData.password.length < 8) {
-      setValidationError('Password must be at least 8 characters');
-      toast.error('Password must be at least 8 characters');
-      return false;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setValidationError('Passwords do not match');
-      toast.error('Passwords do not match');
-      return false;
-    }
+
     return true;
   };
 
@@ -120,7 +177,9 @@ const TechnicianRegisterForm: React.FC = () => {
             placeholder="Enter your first name"
             wrapperStyle={{ flex: 1 }}
             value={formData.firstName}
-            onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+            onChange={(e) => handleChange('firstName', e.target.value)}
+            onBlur={() => validateField('firstName', formData.firstName)}
+            error={fieldErrors.firstName}
             required
           />
           <Input
@@ -128,7 +187,9 @@ const TechnicianRegisterForm: React.FC = () => {
             placeholder="Enter your last name"
             wrapperStyle={{ flex: 1 }}
             value={formData.lastName}
-            onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+            onChange={(e) => handleChange('lastName', e.target.value)}
+            onBlur={() => validateField('lastName', formData.lastName)}
+            error={fieldErrors.lastName}
             required
           />
         </div>
@@ -138,16 +199,21 @@ const TechnicianRegisterForm: React.FC = () => {
           type="email"
           placeholder="Enter your email address"
           value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          onChange={(e) => handleChange('email', e.target.value)}
+          onBlur={() => validateField('email', formData.email)}
+          error={fieldErrors.email}
           required
         />
 
         <Input
           label="Phone Number"
           type="tel"
-          placeholder="Enter your phone number"
+          placeholder="98XXXXXXXX"
           value={formData.phone}
-          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          onChange={(e) => handleChange('phone', e.target.value)}
+          onBlur={() => validateField('phone', formData.phone)}
+          error={fieldErrors.phone}
+          maxLength={10}
           required
         />
 
@@ -156,7 +222,9 @@ const TechnicianRegisterForm: React.FC = () => {
           type="password"
           placeholder="Enter your password (min 8 characters)"
           value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+          onChange={(e) => handleChange('password', e.target.value)}
+          onBlur={() => validateField('password', formData.password)}
+          error={fieldErrors.password}
           required
         />
 
@@ -165,7 +233,9 @@ const TechnicianRegisterForm: React.FC = () => {
           type="password"
           placeholder="Confirm your password"
           value={formData.confirmPassword}
-          onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+          onChange={(e) => handleChange('confirmPassword', e.target.value)}
+          onBlur={() => validateField('confirmPassword', formData.confirmPassword)}
+          error={fieldErrors.confirmPassword}
           required
         />
 

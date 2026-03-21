@@ -94,3 +94,25 @@ a:hover {
 .custom-input::placeholder {
   color: #aaa;
 }
+
+.custom-input.input-error {
+  border-color: #dc2626;
+}
+
+.custom-input.input-error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.1);
+}
+
+.error-text {
+  color: #dc2626;
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
+.field-hint {
+  color: #6b7280;
+  font-size: 12px;
+  margin-top: 2px;
+}
