@@ -5,7 +5,6 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   Layers,
   ArrowRight,
   ChevronDown,

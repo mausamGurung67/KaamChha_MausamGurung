@@ -8,7 +8,6 @@ import {
   MapPin,
   Calendar,
   ChevronRight,
-  Loader2,
   AlertTriangle,
   RefreshCw,
   ArrowLeft,

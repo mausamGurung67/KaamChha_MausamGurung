@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { User, Mail, Phone, Shield, CheckCircle, XCircle, Pencil, Loader2, MapPin, Camera, FileText, Calendar, Eye } from 'lucide-react';
+import { User, Mail, Phone, Shield, CheckCircle, XCircle, Pencil, Loader2, Camera, FileText, Calendar, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Navbar from '../../components/common/Navbar';
 import { getProfile, updateProfile, type UpdateProfilePayload } from '../../services/profile.service';
 import * as technicianService from '../../services/technician.service';
-import type { TechnicianProfile } from '../../services/technician.service';
 import { getMyKYC, type KYCData } from '../../services/kyc.service';
 import { STORAGE_KEYS, ACCEPTED_IMAGE_TYPES, MAX_FILE_SIZE } from '../../utils/constants';
 import { validateName, validatePhone, validateAddress, sanitizePhone, type FieldErrors } from '../../utils/validator';

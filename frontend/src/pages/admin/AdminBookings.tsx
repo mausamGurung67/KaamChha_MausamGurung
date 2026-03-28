@@ -5,7 +5,6 @@ import {
   CheckCircle,
   XCircle,
   ChevronRight,
-  Loader2,
   AlertTriangle,
   RefreshCw,
   UserCheck,
@@ -15,12 +14,11 @@ import {
 import {
   listBookings,
   cancelBooking,
-  updateBookingStatus,
   type Booking,
   type BookingStatus,
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
-import { DashboardStatsSkeleton, BookingTableSkeleton } from '../../components/common/Skeleton';
+import { BookingTableSkeleton } from '../../components/common/Skeleton';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
@@ -73,20 +71,6 @@ const AdminBookings: React.FC = () => {
   useEffect(() => {
     fetchBookings();
   }, [statusFilter, page]);
-
-  const handleStatusUpdate = async (id: string, status: BookingStatus) => {
-    setActionLoading(id);
-    try {
-      await updateBookingStatus(id, status);
-      toast.success(`Booking status updated to ${statusLabels[status] || status}`);
-      fetchBookings();
-      setSelectedBooking(null);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || 'Failed to update status');
-    } finally {
-      setActionLoading('');
-    }
-  };
 
   const handleCancel = async (id: string) => {
     if (!confirm('Cancel this booking?')) return;

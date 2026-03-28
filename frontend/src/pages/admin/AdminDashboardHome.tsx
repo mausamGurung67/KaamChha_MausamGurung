@@ -11,7 +11,6 @@ import {
   TrendingUp,
   ArrowUpRight,
   ArrowDownRight,
-  Star,
   CreditCard,
 } from 'lucide-react';
 import {

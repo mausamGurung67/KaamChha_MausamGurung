@@ -7,7 +7,6 @@ import {
   ToggleRight,
   Loader2,
   Users,
-  UserCog,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import {
@@ -18,7 +17,7 @@ import {
   type TechnicianStats,
   type Pagination,
 } from '../../services/admin.service';
-import { DashboardStatsSkeleton, UserTableSkeleton } from '../../components/common/Skeleton';
+import { UserTableSkeleton } from '../../components/common/Skeleton';
 
 const kycBadge: Record<string, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800',

@@ -3,11 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Clock,
   ArrowLeft,
-  Loader2,
   Layers,
   ChevronLeft,
   ChevronRight,
-  Star,
   CheckCircle,
   Home,
   Calendar,

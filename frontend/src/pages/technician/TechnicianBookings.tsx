@@ -28,7 +28,7 @@ import {
   type BookingStatus,
 } from '../../services/booking.service';
 import { ORDER_STATUS_COLORS } from '../../utils/constants';
-import { TabBarSkeleton, BookingCardSkeleton } from '../../components/common/Skeleton';
+import { BookingCardSkeleton } from '../../components/common/Skeleton';
 import Button from '../../components/common/Button';
 import Pagination from '../../components/common/Pagination';
 import toast from 'react-hot-toast';

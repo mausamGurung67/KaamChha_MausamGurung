@@ -27,14 +27,12 @@ import {
 import * as technicianService from '../../services/technician.service';
 import type { TechnicianStats, RecentOrder, MonthlyData } from '../../services/technician.service';
 import { TechDashboardSkeleton } from '../../components/common/Skeleton';
-import { useAuth } from '../../hooks/useAuth';
 import { useReviewSocket } from '../../hooks/useReviewSocket';
 import Button from '../../components/common/Button';
 import toast from 'react-hot-toast';
 
 const TechnicianDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [stats, setStats] = useState<TechnicianStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
@@ -252,7 +250,7 @@ const TechnicianDashboard: React.FC = () => {
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
                 <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                 <Tooltip
-                  formatter={(value: number) => [`NPR ${value.toLocaleString()}`, 'Earnings']}
+                  formatter={(value) => [`NPR ${Number(value ?? 0).toLocaleString()}`, 'Earnings']}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
                 />
                 <Area
@@ -281,7 +279,7 @@ const TechnicianDashboard: React.FC = () => {
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="#9ca3af" />
                 <YAxis tick={{ fontSize: 12 }} stroke="#9ca3af" allowDecimals={false} />
                 <Tooltip
-                  formatter={(value: number) => [value, 'Jobs']}
+                  formatter={(value) => [Number(value ?? 0), 'Jobs']}
                   contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb' }}
                 />
                 <Bar dataKey="jobs" fill="#3b82f6" radius={[4, 4, 0, 0]} />
