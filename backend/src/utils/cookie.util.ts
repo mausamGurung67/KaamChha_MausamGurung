@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import env from '../config/env';
 
-const sameSitePolicy = env.NODE_ENV === 'production' ? 'strict' : 'lax';
+const isProduction = env.NODE_ENV === 'production';
 
 export const setCookie = (
   res: Response,
@@ -11,8 +11,8 @@ export const setCookie = (
 ): void => {
   res.cookie(name, value, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: sameSitePolicy,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax', // 'none' allows cross-domain cookies
     maxAge,
     path: '/',
   });
@@ -21,8 +21,8 @@ export const setCookie = (
 export const clearCookie = (res: Response, name: string): void => {
   res.clearCookie(name, {
     httpOnly: true,
-    secure: env.NODE_ENV === 'production',
-    sameSite: sameSitePolicy,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
     path: '/',
   });
 };
