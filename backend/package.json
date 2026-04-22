@@ -6,6 +6,8 @@
     "dev": "nodemon",
     "build": "tsc",
     "start": "node dist/server.js",
+    "test": "jest --runInBand",
+    "test:watch": "jest --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
@@ -50,7 +52,10 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
     "nodemon": "^3.1.11",
+    "ts-jest": "^29.4.5",
     "ts-node": "^10.9.2"
   },
   "prisma": {

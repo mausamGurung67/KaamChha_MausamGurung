@@ -28,6 +28,23 @@ export interface ServiceRequestFilters {
 export const createServiceRequest = async (
   data: CreateServiceRequestData
 ): Promise<ServiceRequest> => {
+  if (
+    !data.title?.trim() ||
+    !data.description?.trim() ||
+    !data.category?.trim() ||
+    !data.location?.trim() ||
+    !data.customerId?.trim()
+  ) {
+    throw new Error('Missing required custom service fields');
+  }
+
+  if (
+    (data.latitude !== undefined && (data.latitude < -90 || data.latitude > 90)) ||
+    (data.longitude !== undefined && (data.longitude < -180 || data.longitude > 180))
+  ) {
+    throw new Error('Invalid location input');
+  }
+
   return prisma.serviceRequest.create({
     data: {
       title: data.title,

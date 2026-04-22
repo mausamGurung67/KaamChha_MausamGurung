@@ -23,6 +23,16 @@ export interface KYCListFilters {
 }
 
 export const submitKYC = async (data: SubmitKYCData): Promise<KYC> => {
+  if (
+    !data.documentType ||
+    !data.documentNumber?.trim() ||
+    !data.documentFront?.trim() ||
+    !data.documentBack?.trim() ||
+    !data.selfie?.trim()
+  ) {
+    throw new Error('All KYC documents are required');
+  }
+
   // Check if user is a technician
   const user = await prisma.user.findUnique({
     where: { id: data.technicianId },

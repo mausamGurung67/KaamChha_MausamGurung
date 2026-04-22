@@ -117,6 +117,24 @@ export const updateCustomerProfile = async (
     avatar?: string;
   }
 ): Promise<any> => {
+  const hasUpdatableField =
+    data.name !== undefined ||
+    data.phone !== undefined ||
+    data.address !== undefined ||
+    data.avatar !== undefined;
+
+  if (!hasUpdatableField) {
+    throw new Error('At least one profile field is required');
+  }
+
+  if (data.name !== undefined && data.name.trim().length < 2) {
+    throw new Error('Name must be at least 2 characters');
+  }
+
+  if (data.phone !== undefined && !/^\d{10}$/.test(data.phone)) {
+    throw new Error('Phone number must be exactly 10 digits');
+  }
+
   return prisma.profile.upsert({
     where: { userId: customerId },
     update: data,

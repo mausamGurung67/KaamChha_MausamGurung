@@ -24,6 +24,25 @@ export interface OrderFilters {
 }
 
 export const createOrder = async (data: CreateOrderData): Promise<any> => {
+  if (
+    !data.customerId?.trim() ||
+    !data.serviceId?.trim() ||
+    data.serviceLatitude === undefined ||
+    data.serviceLongitude === undefined ||
+    !data.serviceAddress?.trim()
+  ) {
+    throw new Error('Missing required booking fields');
+  }
+
+  if (
+    data.serviceLatitude < -90 ||
+    data.serviceLatitude > 90 ||
+    data.serviceLongitude < -180 ||
+    data.serviceLongitude > 180
+  ) {
+    throw new Error('Invalid service location coordinates');
+  }
+
   // Verify service exists and is active
   const service = await prisma.service.findUnique({
     where: { id: data.serviceId },

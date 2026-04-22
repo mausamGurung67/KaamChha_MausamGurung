@@ -17,7 +17,6 @@ const router = Router();
 
 router.post('/register', validate(registerSchema), authController.register);
 router.post('/login', validate(loginSchema), authController.login);
-// TODO: Enable when google service is implemented
 // router.post('/google', validate(googleLoginSchema), authController.googleLogin);
 router.post('/verify-email', authenticate, validate(verifyEmailSchema), authController.verifyEmail);
 router.post('/resend-otp', authenticate, validate(resendOTPSchema), authController.resendOTP);

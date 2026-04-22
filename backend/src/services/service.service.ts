@@ -234,3 +234,39 @@ export const deleteService = async (
   });
 };
 
+export const createSystemService = async (
+  data: CreateServiceData,
+  userRole: UserRole
+): Promise<Service> => {
+  if (userRole !== UserRole.ADMIN) {
+    throw new Error('Only admin can create system services');
+  }
+
+  return createService(data);
+};
+
+export const updateSystemService = async (
+  id: string,
+  data: UpdateServiceData,
+  userId: string,
+  userRole: UserRole
+): Promise<Service> => {
+  if (userRole !== UserRole.ADMIN) {
+    throw new Error('Only admin can update system services');
+  }
+
+  return updateService(id, data, userId, userRole);
+};
+
+export const deleteSystemService = async (
+  id: string,
+  userId: string,
+  userRole: UserRole
+): Promise<void> => {
+  if (userRole !== UserRole.ADMIN) {
+    throw new Error('Only admin can delete system services');
+  }
+
+  return deleteService(id, userId, userRole);
+};
+

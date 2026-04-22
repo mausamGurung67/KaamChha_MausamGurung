@@ -21,6 +21,15 @@ export interface LoginData {
 }
 
 export const register = async (data: RegisterData): Promise<{ user: User; accessToken: string; refreshToken: string }> => {
+  if (!data.email?.trim() || !data.password?.trim() || !data.name?.trim()) {
+    throw new Error('Email, password and name are required');
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(data.email)) {
+    throw new Error('Invalid email format');
+  }
+
   // Check if user exists
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
@@ -78,6 +87,10 @@ export const register = async (data: RegisterData): Promise<{ user: User; access
 };
 
 export const login = async (data: LoginData): Promise<{ user: User; accessToken: string; refreshToken: string }> => {
+  if (!data.email?.trim() || !data.password?.trim()) {
+    throw new Error('Email and password are required');
+  }
+
   const user = await prisma.user.findUnique({
     where: { email: data.email },
     include: { profile: true },
