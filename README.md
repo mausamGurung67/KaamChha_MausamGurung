@@ -256,8 +256,3 @@ Frontend:
 - Leaflet + React-Leaflet
 
 ---
-
-If you want, I can also add:
-- backend/.env.example
-- frontend/.env.example
-- API endpoint quick reference with sample request/response payloads
